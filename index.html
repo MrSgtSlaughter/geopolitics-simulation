@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TWC: The Modern Empire</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+  body { background: #020508; font-family: 'Segoe UI', sans-serif; }
+  #root { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>(function(){var w=console.warn;console.warn=function(){if(arguments[0]&&typeof arguments[0]==='string'&&arguments[0].indexOf('Babel')>-1)return;w.apply(console,arguments)};})();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+
+// ─── AUDIO SYSTEM ─────────────────────────────────────────────
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let _actx=null;
+const getACtx=()=>{if(!_actx)_actx=new AudioCtx();return _actx;};
+const SFX={
+  click:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=600+Math.random()*200;o.type="sine";g.gain.value=0.06;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.08);o.stop(c.currentTime+0.08)}catch{}},
+  build:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=400;o.type="triangle";g.gain.value=0.08;o.start();o.frequency.linearRampToValueAtTime(800,c.currentTime+0.12);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15);o.stop(c.currentTime+0.15)}catch{}},
+  achieve:()=>{try{const c=getACtx();[523,659,784].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type="sine";g.gain.value=0.1;o.start(c.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+i*0.12+0.3);o.stop(c.currentTime+i*0.12+0.3)})}catch{}},
+  crisis:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=200;o.type="sawtooth";g.gain.value=0.07;o.start();o.frequency.linearRampToValueAtTime(100,c.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);o.stop(c.currentTime+0.4)}catch{}},
+  quiz_right:()=>{try{const c=getACtx();[523,784].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type="sine";g.gain.value=0.09;o.start(c.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+i*0.1+0.2);o.stop(c.currentTime+i*0.1+0.2)})}catch{}},
+  quiz_wrong:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=250;o.type="square";g.gain.value=0.06;o.start();o.frequency.linearRampToValueAtTime(150,c.currentTime+0.2);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.25);o.stop(c.currentTime+0.25)}catch{}},
+  war_hit:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=800+Math.random()*400;o.type="square";g.gain.value=0.07;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.06);o.stop(c.currentTime+0.06)}catch{}},
+  phone_buzz:()=>{try{const c=getACtx();const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=80;o.type="sawtooth";g.gain.value=0.12;o.start();g.gain.setValueAtTime(0.12,c.currentTime);g.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o.stop(c.currentTime+0.15);setTimeout(()=>{try{const o2=c.createOscillator(),g2=c.createGain();o2.connect(g2);g2.connect(c.destination);o2.frequency.value=80;o2.type="sawtooth";g2.gain.value=0.12;o2.start();g2.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o2.stop(c.currentTime+0.15)}catch{}},200);setTimeout(()=>{try{const o3=c.createOscillator(),g3=c.createGain();o3.connect(g3);g3.connect(c.destination);o3.frequency.value=80;o3.type="sawtooth";g3.gain.value=0.12;o3.start();g3.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o3.stop(c.currentTime+0.15)}catch{}},400)}catch{}},
+  war_start:()=>{try{const c=getACtx();const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=150;o.type="sawtooth";g.gain.value=0.08;o.start();o.frequency.linearRampToValueAtTime(400,c.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);o.stop(c.currentTime+0.5)}catch{}},
+};
+
+// ─── FAKE NEWS HEADLINES ──────────────────────────────────────
+const HEADLINES=[
+  "Markets rally on strong consumer confidence data",
+  "Scientists discover high-yield lithium deposit in mountain range",
+  "International trade summit begins amid tariff concerns",
+  "Tech sector posts record quarterly earnings",
+  "Central bank holds interest rates steady for third month",
+  "New highway project to reduce commute times by 30%",
+  "Education reform bill passes with bipartisan support",
+  "Oil futures climb on supply chain disruptions",
+  "Healthcare costs expected to drop with new policy",
+  "Renewable energy now powers 40% of the national grid",
+  "Military exercise draws praise from allied nations",
+  "Unemployment hits 10-year low as factories expand",
+  "Diplomatic crisis averted through last-minute negotiations",
+  "Stock exchange sets new all-time daily volume record",
+  "Space agency announces plans for lunar research station",
+  "Cybersecurity budget doubles after recent digital threats",
+  "National park attendance breaks yearly record",
+  "Housing starts surge as suburbs expand rapidly",
+  "Foreign investors pour billions into tech sector",
+  "Clean water initiative reaches 5 million citizens",
+  "Crime rate drops for the fifth consecutive quarter",
+  "New university campus to open in three provinces",
+  "Solar energy prices fall below coal for first time",
+  "Defense pact signed with three neighboring nations",
+  "Tourism revenue hits all-time high this quarter",
+  "Inflation concerns grow as consumer prices tick upward",
+  "Lithium battery breakthrough could double EV range",
+  "Trade deficit narrows on strong export performance",
+  "Public transit ridership surges after new rail line opens",
+  "G20 leaders agree on climate action framework",
+];
+
+const{useState,useEffect,useCallback,useRef,useMemo}=React;
+
+/* TWC: THE MODERN EMPIRE - FULL SIMULATION
+   © 2026 Jason Slaughter · PixelED Path, LLC
+   Firebase: minigolf-fd9ea / twc_modern_scores */
+
+const FB="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
+const fbV=f=>f?Object.values(f)[0]:"";
+const fbPost=async d=>{const fs={};for(const[k,v]of Object.entries(d))fs[k]=typeof v==="number"?{integerValue:String(Math.floor(v))}:{stringValue:String(v)};try{const r=await fetch(FB,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fs})});if(!r.ok){const t=await r.text();console.error("FB POST error:",r.status,t);return"ERR:"+r.status}return true}catch(e){console.error("FB network error:",e);return"ERR:network"}};
+const fbGet=async()=>{try{const r=await fetch(FB+"?pageSize=50");if(!r.ok){console.error("FB GET error:",r.status);return[]}const d=await r.json();const docs=(d.documents||[]).map(x=>{const f=x.fields||{};return{name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,tier:fbV(f.tier),ach:Number(fbV(f.ach))||0,period:fbV(f.period),twc:Number(fbV(f.twc))||0}});docs.sort((a,b)=>b.score-a.score);return docs.slice(0,30)}catch(e){console.error("FB GET network:",e);return[]}};
+// ─── TWC STORE (Individual Contribution) ─────────────────────
+const STORE=[
+  {id:"ranger",n:"Airborne Ranger",e:"🪖",d:"+1 attack roll",price:100,stack:true},
+  {id:"tank",n:"Tank",e:"🛡️",d:"+2 attack roll (max 3)",price:200,stack:true},
+  {id:"blockade",n:"Blockade",e:"🚧",d:"Target class cannot attack today (60%)",price:300,stack:false},
+  {id:"bomber",n:"Bomber",e:"✈️",d:"Force enemy to lose 1 territory (70%)",price:350,stack:false},
+  {id:"submarine",n:"Submarine",e:"🔱",d:"Roll attack dice twice, take better (75%)",price:400,stack:false},
+  {id:"cyberattack",n:"Cyber Attack",e:"💻",d:"Steal up to $800 from enemy (50%)",price:450,stack:false},
+  {id:"carrier",n:"Aircraft Carrier",e:"🚢",d:"Attack without bordering (70%)",price:500,stack:false},
+  {id:"civilunrest",n:"Civil Unrest",e:"🔥",d:"Target class loses 2 turns",price:700,stack:false},
+  {id:"icbm",n:"ICBM",e:"🚀",d:"+5 bonus to cross-continent attack",price:800,stack:false},
+  {id:"nuke",n:"Nuclear Warhead",e:"☢️",d:"DESTROYS territory forever (40%)",price:2000,stack:false},
+];
+
+const fmt=n=>{if(n<0)return"-"+fmt(-n);if(n>=1e12)return(n/1e12).toFixed(1)+"T";if(n>=1e9)return(n/1e9).toFixed(1)+"B";if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"K";return Math.floor(n).toString()};
+const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+// ═══ GOVERNMENTS ═══
+const GOV={
+  democracy:{n:"Democracy",e:"🗳️",c:"#3B82F6",d:"Freedom, elections, civil liberties.",b:{education:1.4,diplomacy:1.3,technology:1.2,defense:0.85,oil:0.9},s:"+40% Edu +30% Dip -15% Def"},
+  republic:{n:"Republic",e:"📜",c:"#6EE7B7",d:"Representatives with checks & balances.",b:{gdp:1.2,technology:1.15,education:1.15,diplomacy:1.1,defense:1.05},s:"+20% GDP Balanced"},
+  monarchy:{n:"Monarchy",e:"👑",c:"#F59E0B",d:"Royal family rules with tradition.",b:{gdp:1.4,defense:1.3,diplomacy:1.2,education:0.75,technology:0.85},s:"+40% GDP +30% Def -25% Edu"},
+  dictatorship:{n:"Dictatorship",e:"🫡",c:"#EF4444",d:"One ruler, absolute power.",b:{defense:1.8,oil:1.4,gdp:1.1,diplomacy:0.35,education:0.55},s:"+80% Def -65% Dip -45% Edu"},
+  authoritarianism:{n:"Authoritarianism",e:"🔒",c:"#94A3B8",d:"Central control, limited freedom.",b:{defense:1.5,gdp:1.3,oil:1.2,diplomacy:0.45,education:0.75},s:"+50% Def +30% GDP -55% Dip"},
+  totalitarianism:{n:"Totalitarianism",e:"⚡",c:"#A855F7",d:"The state controls everything.",b:{defense:2.0,oil:1.6,gdp:1.2,diplomacy:0.2,education:0.35,healthcare:0.55},s:"+100% Def -80% Dip -65% Edu"},
+  oligarchy:{n:"Oligarchy",e:"💰",c:"#10B981",d:"Wealthy elites hold power.",b:{gdp:1.8,oil:1.4,technology:1.2,education:0.55,healthcare:0.65},s:"+80% GDP -45% Edu"},
+  theocracy:{n:"Theocracy",e:"✝️",c:"#C084FC",d:"Religious leaders govern.",b:{diplomacy:1.4,defense:1.3,gdp:1.1,technology:0.55,education:0.65},s:"+40% Dip -45% Tech"},
+};
+
+// ─── RELIGIONS (GRAPES - R) ──────────────────────────────────
+const RELIGIONS={
+  christianity:{n:"Christianity",e:"✝️",d:"Spread through the Roman Empire. Monasteries preserved learning.",b:{diplomacy:1.15,education:1.1},s:"+15% Diplomacy, +10% Education"},
+  islam:{n:"Islam",e:"☪️",d:"The Golden Age brought advances in math, science, and trade.",b:{gdp:1.15,education:1.1,technology:1.05},s:"+15% GDP, +10% Education, +5% Tech"},
+  judaism:{n:"Judaism",e:"✡️",d:"Ancient tradition emphasizing law, learning, and community.",b:{education:1.15,technology:1.1},s:"+15% Education, +10% Technology"},
+  hinduism:{n:"Hinduism",e:"🕉️",d:"One of the oldest religions. Rich traditions in medicine and math.",b:{healthcare:1.15,education:1.05},s:"+15% Healthcare, +5% Education"},
+  buddhism:{n:"Buddhism",e:"☸️",d:"Founded by Siddhartha Gautama. Teaches peace and compassion.",b:{diplomacy:1.15,healthcare:1.1},s:"+15% Diplomacy, +10% Healthcare"},
+  daoism:{n:"Daoism",e:"☯️",d:"Follow the Dao. Harmony with nature led to early science.",b:{healthcare:1.1,technology:1.1},s:"+10% Healthcare, +10% Technology"},
+  sikhism:{n:"Sikhism",e:"🪯",d:"Founded by Guru Nanak. Emphasizes equality, service, and justice.",b:{defense:1.1,diplomacy:1.1,healthcare:1.05},s:"+10% Defense, +10% Diplomacy, +5% Healthcare"},
+};
+
+const RES={gdp:{e:"💰",n:"GDP"},oil:{e:"🛢️",n:"Oil"},lithium:{e:"🔋",n:"Lithium"},technology:{e:"🔬",n:"Tech"},education:{e:"🎓",n:"Edu"},defense:{e:"🛡️",n:"Def"},healthcare:{e:"💉",n:"Health"},diplomacy:{e:"🌍",n:"Diplo"}};
+
+// ═══ RESOURCE UNLOCK ═══
+const RES_UNL={gdp:()=>true,oil:()=>true,lithium:b=>(b.oilRef||0)>=3,technology:b=>(b.lithMine||0)>=2,education:()=>false,defense:b=>{let t=0;for(const v of Object.values(b))t+=v;return t>=15},healthcare:b=>(b.university||0)>=2,diplomacy:b=>(b.embassy||0)>=1&&(b.tradePort||0)>=1};
+const RES_HINT={gdp:"Available",oil:"Available",lithium:"Build 3 Oil Refineries",technology:"Build 2 Lithium Mines",education:"Quiz only!",defense:"Build 15 total buildings",healthcare:"Build 2 Universities",diplomacy:"Build 1 Embassy AND 1 Trade Port"};
+
+// ═══ BUILDINGS (35) ═══
+const BLDS=[
+  // TIER 0: Starter
+  {id:"taxOffice",n:"Tax Office",e:"🏛️",d:"Collects taxes. Scales with tax rate.",cost:{gdp:15},prod:{gdp:1},sc:1.19,tier:0,cat:"gov"},
+  {id:"oilRef",n:"Oil Refinery",e:"🛢️",d:"Refines crude. Adds pollution.",cost:{gdp:25},prod:{oil:0.7},sc:1.21,tier:0,cat:"ind",poll:2},
+  {id:"apartment",n:"Apartments",e:"🏢",d:"+50 population capacity",cost:{gdp:20},prod:{},sc:1.12,tier:0,cat:"res",pop:50},
+  // TIER 1: 8 buildings
+  {id:"lithMine",n:"Lithium Mine",e:"🔋",d:"Mines lithium. Adds pollution.",cost:{gdp:40,oil:15},prod:{lithium:0.4},sc:1.23,tier:15,cat:"ind",poll:3},
+  {id:"factory",n:"Factory",e:"🏭",d:"Mass production. Heavy pollution.",cost:{gdp:50,oil:20},prod:{gdp:1.8,oil:0.2},sc:1.28,tier:15,cat:"ind",poll:5},
+  {id:"elementary",n:"Elementary School",e:"🏫",d:"Educates young citizens. Reduces crime.",cost:{gdp:35},prod:{education:0.15},sc:1.23,tier:15,cat:"edu",crime:-1},
+  {id:"policeStation",n:"Police Station",e:"👮",d:"Reduces crime significantly.",cost:{gdp:40},prod:{},sc:1.21,tier:15,cat:"gov",crime:-5},
+  {id:"fireStation",n:"Fire Station",e:"🚒",d:"Reduces disaster damage.",cost:{gdp:35},prod:{},sc:1.23,tier:15,cat:"gov"},
+  // TIER 2: 18 buildings
+  {id:"suburb",n:"Suburbs",e:"🏠",d:"+120 pop. Adds traffic.",cost:{gdp:60,oil:10},prod:{},sc:1.19,tier:35,cat:"res",pop:120,traff:3},
+  {id:"shops",n:"Shopping Center",e:"🛍️",d:"Commercial revenue. Creates jobs.",cost:{gdp:55},prod:{gdp:3},sc:1.21,tier:35,cat:"com"},
+  {id:"middleSchool",n:"Middle School",e:"📚",d:"Intermediate education.",cost:{gdp:50,education:5},prod:{education:0.2},sc:1.21,tier:35,cat:"edu",crime:-1},
+  {id:"clinic",n:"Health Clinic",e:"⛑️",d:"Basic healthcare.",cost:{gdp:45},prod:{healthcare:0.5},sc:1.19,tier:35,cat:"med"},
+  {id:"waterPlant",n:"Water Treatment",e:"💧",d:"Required for population growth.",cost:{gdp:60,oil:10},prod:{},sc:1.23,tier:35,cat:"util"},
+  {id:"powerPlant",n:"Power Plant",e:"⚡",d:"Powers buildings. Pollution.",cost:{gdp:70,oil:20},prod:{},sc:1.26,tier:35,cat:"util",poll:4},
+  {id:"highway",n:"Highway System",e:"🛣️",d:"Reduces traffic problems.",cost:{gdp:80},prod:{},sc:1.26,tier:35,cat:"infra",traff:-10},
+  // TIER 3: 30 buildings
+  {id:"techCampus",n:"Tech Campus",e:"💻",d:"R&D innovation labs.",cost:{gdp:100,lithium:15},prod:{technology:0.5},sc:1.26,tier:60,cat:"ind"},
+  {id:"highSchool",n:"High School",e:"🎓",d:"Advanced education. Reduces crime.",cost:{gdp:70,education:10},prod:{education:0.25},sc:1.28,tier:60,cat:"edu",crime:-2},
+  {id:"hospital",n:"Hospital",e:"🏥",d:"Full healthcare services.",cost:{gdp:90,education:15},prod:{healthcare:0.8},sc:1.23,tier:60,cat:"med"},
+  {id:"milBase",n:"Military Base",e:"🏰",d:"Projects power.",cost:{gdp:100,oil:25},prod:{defense:0.5},sc:1.26,tier:60,cat:"mil"},
+  {id:"tradePort",n:"Trade Port",e:"🚢",d:"Import/export hub.",cost:{gdp:100,diplomacy:8},prod:{gdp:3,diplomacy:0.2},sc:1.26,tier:60,cat:"com"},
+  {id:"nationalPark",n:"National Park",e:"🏞️",d:"Reduces pollution. Boosts happiness.",cost:{gdp:80},prod:{},sc:1.19,tier:60,cat:"civic",poll:-8,happy:5},
+  {id:"mall",n:"Mega Mall",e:"🏬",d:"Massive commercial revenue.",cost:{gdp:120},prod:{gdp:5},sc:1.26,tier:60,cat:"com",traff:5},
+  // TIER 4: 50 buildings
+  {id:"university",n:"University",e:"🏫",d:"Higher education & research.",cost:{gdp:150,technology:20},prod:{education:0.3,technology:0.3},sc:1.26,tier:100,cat:"edu"},
+  {id:"embassy",n:"Embassy",e:"🏢",d:"International relationships.",cost:{gdp:140,diplomacy:10},prod:{diplomacy:0.4},sc:1.26,tier:100,cat:"gov"},
+  {id:"stockExch",n:"Stock Exchange",e:"📈",d:"Financial hub. Affects DOW.",cost:{gdp:200,technology:30},prod:{gdp:6},sc:1.32,tier:100,cat:"com"},
+  {id:"solarFarm",n:"Solar Farm",e:"☀️",d:"Clean energy. Reduces pollution.",cost:{gdp:150,lithium:25,technology:15},prod:{lithium:1.2,gdp:1.5},sc:1.26,tier:100,cat:"util",poll:-3},
+  {id:"transit",n:"Mass Transit",e:"🚇",d:"Huge traffic reduction.",cost:{gdp:200,technology:20},prod:{},sc:1.32,tier:100,cat:"infra",traff:-20,happy:3},
+  {id:"newsBureau",n:"News Bureau",e:"📡",d:"Shapes opinion.",cost:{gdp:120,diplomacy:10},prod:{diplomacy:0.6},sc:1.28,tier:100,cat:"gov"},
+  // TIER 5: 75 buildings
+  {id:"vaccineLab",n:"Vaccine Lab",e:"🧬",d:"Researches cures.",cost:{gdp:250,technology:40,healthcare:20},prod:{healthcare:2.5,technology:0.5},sc:1.32,tier:150,cat:"med"},
+  {id:"cyberCmd",n:"Cyber Command",e:"🖥️",d:"Digital warfare.",cost:{gdp:280,technology:60,defense:25},prod:{defense:1.5,technology:1},sc:1.32,tier:150,cat:"mil"},
+  {id:"nuclearPlant",n:"Nuclear Plant",e:"☢️",d:"Massive power. Some risk.",cost:{gdp:400,technology:80,lithium:40},prod:{gdp:5,oil:2},sc:1.38,tier:150,cat:"util",poll:-2},
+  {id:"luxCondo",n:"Luxury Condos",e:"🏙️",d:"+200 pop. High GDP.",cost:{gdp:300,technology:20},prod:{gdp:4},sc:1.28,tier:150,cat:"res",pop:200,traff:4},
+  {id:"convention",n:"Convention Center",e:"🎪",d:"Tourism & commerce.",cost:{gdp:250,diplomacy:30},prod:{gdp:5,diplomacy:0.5},sc:1.28,tier:150,cat:"com"},
+  // TIER 6: 100 buildings
+  {id:"spaceProgram",n:"Space Program",e:"🚀",d:"The final frontier.",cost:{gdp:5000,technology:800,education:400,lithium:200},prod:{technology:10,diplomacy:8,education:4,gdp:8},sc:3.0,tier:200,cat:"mil"},
+  {id:"researchLab",n:"Research Lab",e:"🔬",d:"Cutting-edge science.",cost:{gdp:600,technology:150,education:80},prod:{technology:5,education:2},sc:1.5,tier:200,cat:"edu"},
+  {id:"airForce",n:"Air Force Base",e:"✈️",d:"Air superiority.",cost:{gdp:500,defense:60,oil:80},prod:{defense:3},sc:1.38,tier:200,cat:"mil"},
+];
+
+// ═══ UPGRADES ═══
+const UPGS=[
+  {id:"u1",n:"Fracking",e:"⛽",d:"Oil 2x",cost:{gdp:300,oil:80},eff:{b:"oilRef",m:2},req:{oilRef:5}},
+  {id:"u2",n:"Green Energy",e:"🌱",d:"Lithium 2x",cost:{gdp:400,lithium:60},eff:{b:"lithMine",m:2},req:{lithMine:5}},
+  {id:"u3",n:"AI Research",e:"🤖",d:"Tech 2x",cost:{gdp:500,technology:100},eff:{b:"techCampus",m:2},req:{techCampus:4}},
+  {id:"u4",n:"Free College",e:"🎓",d:"Uni 2x",cost:{gdp:600,education:80},eff:{b:"university",m:2},req:{university:3}},
+  {id:"u5",n:"Nuclear Arsenal",e:"☢️",d:"Military 2x",cost:{gdp:700,defense:100},eff:{b:"milBase",m:2},req:{milBase:5}},
+  {id:"u6",n:"Healthcare Reform",e:"🏥",d:"Hospital 2x",cost:{gdp:500,healthcare:60},eff:{b:"hospital",m:2},req:{hospital:4}},
+  {id:"u7",n:"Alliance Treaty",e:"🤝",d:"Embassy 2x",cost:{gdp:600,diplomacy:60},eff:{b:"embassy",m:2},req:{embassy:3}},
+  {id:"u8",n:"Automation",e:"🤖",d:"Factory 2x",cost:{gdp:600,technology:80},eff:{b:"factory",m:2},req:{factory:5}},
+  {id:"u9",n:"Deep Drilling",e:"🌊",d:"Oil 3x",cost:{gdp:3000,oil:600},eff:{b:"oilRef",m:3},req:{oilRef:15}},
+  {id:"u10",n:"Quantum AI",e:"⚛️",d:"Tech 3x",cost:{gdp:4000,technology:1000},eff:{b:"techCampus",m:3},req:{techCampus:10}},
+  {id:"u11",n:"Click Power I",e:"📋",d:"Click x2",cost:{gdp:120},eff:{click:2},req:{}},
+  {id:"u12",n:"Click Power II",e:"🚨",d:"Click x4",cost:{gdp:1200,defense:120},eff:{click:4},req:{}},
+  {id:"u13",n:"Click Power III",e:"⚔️",d:"Click x8",cost:{gdp:12000,defense:600},eff:{click:8},req:{}},
+  {id:"u14",n:"Tariff Wall",e:"🧱",d:"Tax 2x",cost:{gdp:800,defense:50},eff:{b:"taxOffice",m:2},req:{tradePort:3}},
+  {id:"u15",n:"Smart Grid",e:"⚡",d:"Power +50%",cost:{gdp:1000,technology:200},eff:{b:"solarFarm",m:2},req:{solarFarm:3}},
+  {id:"u16",n:"Free Trade",e:"🌐",d:"Port 2x",cost:{gdp:1200,diplomacy:150},eff:{b:"tradePort",m:2},req:{tradePort:5}},
+];
+
+// ═══ QUIZ (75 questions) ═══
+const QS=[
+  {q:"What government is ruled by ONE person with absolute power?",a:"Dictatorship",w:["Democracy","Republic","Oligarchy"],cat:"🏛️ Gov"},
+  {q:"In which government do citizens VOTE for leaders?",a:"Democracy",w:["Dictatorship","Monarchy","Totalitarianism"],cat:"🏛️ Gov"},
+  {q:"Government by a SMALL GROUP of wealthy people?",a:"Oligarchy",w:["Democracy","Theocracy","Republic"],cat:"🏛️ Gov"},
+  {q:"In a theocracy, who holds power?",a:"Religious leaders",w:["Military","Wealthy elites","Elected officials"],cat:"🏛️ Gov"},
+  {q:"Government with a king or queen?",a:"Monarchy",w:["Republic","Oligarchy","Democracy"],cat:"🏛️ Gov"},
+  {q:"In a republic, leaders are...?",a:"Elected by citizens",w:["Born into power","Military takeover","Religious appointment"],cat:"🏛️ Gov"},
+  {q:"Totalitarianism means gov controls...?",a:"ALL aspects of life",w:["Only military","Only trade","Only religion"],cat:"🏛️ Gov"},
+  {q:"What is a constitution?",a:"Written plan of government",w:["Type of tax","Military strategy","Trade agreement"],cat:"🏛️ Gov"},
+  {q:"Checks and balances prevent...?",a:"One branch getting too powerful",w:["Budget problems","ID fraud","Military spending"],cat:"🏛️ Gov"},
+  {q:"What is propaganda?",a:"Info to influence opinions",w:["Government type","Trade deal","Military unit"],cat:"🏛️ Gov"},
+  {q:"What is a coup?",a:"Sudden overthrow of government",w:["Peace treaty","Election","Trade deal"],cat:"🏛️ Gov"},
+  {q:"What is sovereignty?",a:"Nation's right to govern itself",w:["King's crown","Tax system","Military power"],cat:"🏛️ Gov"},
+  {q:"What is an embargo?",a:"Ban on trade with a country",w:["Peace treaty","Alliance","Government type"],cat:"🏛️ Gov"},
+  {q:"What is a tariff?",a:"Tax on imported goods",w:["Weapon","Peace treaty","Government type"],cat:"🏛️ Gov"},
+  {q:"What does GDP stand for?",a:"Gross Domestic Product",w:["General Defense Plan","Govt Debt Payment","Global Democracy Program"],cat:"🏛️ Gov"},
+  {q:"Citizens' main role in a democracy?",a:"Vote and participate",w:["Obey without question","Pay taxes only","Serve military"],cat:"🏛️ Gov"},
+  {q:"What is an autocracy?",a:"Rule by one person",w:["Rule by people","Rule by wealthy","Rule by law"],cat:"🏛️ Gov"},
+  {q:"Imports come __, exports go __.",a:"IN, OUT",w:["Out, In","Up, Down","Same thing"],cat:"🏛️ Gov"},
+  {q:"What is a sanction?",a:"Penalty on a country",w:["Election type","Trade bonus","Military award"],cat:"🏛️ Gov"},
+  {q:"Which gov gives MOST freedom?",a:"Democracy",w:["Totalitarianism","Dictatorship","Authoritarianism"],cat:"🏛️ Gov"},
+  {q:"'Rule of law' means...?",a:"Everyone follows the law, even leaders",w:["King makes rules","Only citizens follow","Laws optional"],cat:"🏛️ Gov"},
+  {q:"What is imperialism?",a:"Powerful nation controlling weaker ones",w:["Type of democracy","Free trade","Religious movement"],cat:"🏛️ Gov"},
+  {q:"What is nationalism?",a:"Strong pride in one's nation",w:["Hatred of nations","Economy type","Government form"],cat:"🏛️ Gov"},
+  {q:"In communism, who owns resources?",a:"The government",w:["Individuals","Military","Religious leaders"],cat:"🏛️ Gov"},
+  {q:"What is capitalism?",a:"Private ownership, free markets",w:["Gov owns everything","No trade","Kings own all"],cat:"🏛️ Gov"},
+  {q:"What is a revolution?",a:"Major change in government",w:["Peaceful election","Trade deal","Type of tax"],cat:"🏛️ Gov"},
+  {q:"Purpose of government?",a:"Make/enforce laws, provide order",w:["Collect money","Wage war","Control thoughts"],cat:"🏛️ Gov"},
+  {q:"What is a federal system?",a:"Power shared national & local",w:["One ruler has all","Only cities have laws","No central gov"],cat:"🏛️ Gov"},
+  {q:"Dictatorships limit...?",a:"Speech and press freedom",w:["Military spending","Trade","Tax collection"],cat:"🏛️ Gov"},
+  {q:"In oligarchy, power from...?",a:"Wealth and status",w:["Military rank","Popular vote","Religious devotion"],cat:"🏛️ Gov"},
+  {q:"Which philosophy teaches respect for elders?",a:"Confucianism",w:["Legalism","Daoism","Buddhism"],cat:"🐉 China"},
+  {q:"Which philosophy: STRICT laws, harsh punishments?",a:"Legalism",w:["Confucianism","Daoism","Buddhism"],cat:"🐉 China"},
+  {q:"Daoism teaches...?",a:"Live in harmony with nature",w:["Strict laws","Build armies","Conquer neighbors"],cat:"🐉 China"},
+  {q:"Who founded Confucianism?",a:"Confucius",w:["Laozi","Shi Huangdi","Sun Tzu"],cat:"🐉 China"},
+  {q:"Qin Shi Huangdi used which philosophy?",a:"Legalism",w:["Confucianism","Daoism","Buddhism"],cat:"🐉 China"},
+  {q:"Qin Shi Huangdi began building...?",a:"The Great Wall of China",w:["Forbidden City","Silk Road","Grand Canal"],cat:"🐉 China"},
+  {q:"Trade route: China to Mediterranean?",a:"The Silk Road",w:["Spice Route","Gold Path","Roman Highway"],cat:"🐉 China"},
+  {q:"What is the Mandate of Heaven?",a:"Ruler's power from the gods",w:["A weapon","Trade agreement","Peace philosophy"],cat:"🐉 China"},
+  {q:"'Filial piety' means...?",a:"Respect for parents/elders",w:["Love of money","Fear of gov","Military loyalty"],cat:"🐉 China"},
+  {q:"Yin and Yang represents...?",a:"Balance between opposites",w:["Good vs evil","Emperor power","Military strength"],cat:"🐉 China"},
+  {q:"Which dynasty invented paper?",a:"Han Dynasty",w:["Qin","Shang","Zhou"],cat:"🐉 China"},
+  {q:"Dynastic Cycle = ...?",a:"Rise and fall of ruling families",w:["Calendar","Military strategy","Trading system"],cat:"🐉 China"},
+  {q:"Oracle bones used to...?",a:"Predict the future",w:["Fight","Build houses","Trade goods"],cat:"🐉 China"},
+  {q:"Sun Tzu wrote...?",a:"The Art of War",w:["Analects","Dao De Jing","Book of Songs"],cat:"🐉 China"},
+  {q:"What is a dynasty?",a:"Rulers from same family",w:["Building","Military unit","Trade route"],cat:"🐉 China"},
+  {q:"Shang Dynasty known for...?",a:"Bronze working, oracle bones",w:["Gunpowder","Great Wall","Paper"],cat:"🐉 China"},
+  {q:"Legalists: people are naturally...?",a:"Selfish, need strict control",w:["Good","Equal to rulers","Don't need gov"],cat:"🐉 China"},
+  {q:"Confucius: good gov needs...?",a:"Moral, educated leaders",w:["Harsh punishment","Large armies","Lots of money"],cat:"🐉 China"},
+  {q:"Laozi taught...?",a:"Follow the Dao, live simply",w:["Punish harshly","Conquer lands","Build armies"],cat:"🐉 China"},
+  {q:"Ancient Chinese gov type?",a:"Monarchy - emperors",w:["Democracy","Republic","Oligarchy"],cat:"🐉 China"},
+  {q:"Mesopotamia between which rivers?",a:"Tigris and Euphrates",w:["Nile & Amazon","Yellow & Yangtze","Rhine & Danube"],cat:"🏺 Sumer"},
+  {q:"Sumerian government type?",a:"Monarchy - kings",w:["Democracy","Republic","Communism"],cat:"🏺 Sumer"},
+  {q:"What is a city-state?",a:"Independent city governing itself",w:["State no cities","One law country","Military base"],cat:"🏺 Sumer"},
+  {q:"First writing system?",a:"Cuneiform",w:["Hieroglyphics","Alphabet","Chinese characters"],cat:"🏺 Sumer"},
+  {q:"Hammurabi created...?",a:"First written code of laws",w:["First army","First religion","First city"],cat:"🏺 Sumer"},
+  {q:"What is a ziggurat?",a:"Stepped temple for the gods",w:["Weapon","Gov building","River boat"],cat:"🏺 Sumer"},
+  {q:"Why 'Fertile Crescent'?",a:"River floods = rich farming soil",w:["Moon shaped","Gold mines","Always warm"],cat:"🏺 Sumer"},
+  {q:"Sumerian kings' power from...?",a:"The gods",w:["People vote","Wealth","Military wins"],cat:"🏺 Sumer"},
+  {q:"Hammurabi's Code based on...?",a:"Eye for an eye",w:["Forgiveness","Punish poor only","Let criminals go"],cat:"🏺 Sumer"},
+  {q:"Sumer invented...?",a:"The wheel",w:["Gunpowder","Compass","Paper"],cat:"🏺 Sumer"},
+  {q:"Cities + writing + gov = ?",a:"Civilization",w:["Tribe","Nomads","Colony"],cat:"🏺 Sumer"},
+  {q:"Rivers important for...?",a:"Water, soil, trade, transport",w:["Swimming only","Building walls","Not important"],cat:"🏺 Sumer"},
+  {q:"Ancient Greece = many independent...?",a:"City-states",w:["Countries","Empires","Tribes"],cat:"🏺 Greece"},
+  {q:"Greece birthplace of...?",a:"Democracy",w:["Monarchy","Dictatorship","Communism"],cat:"🏺 Greece"},
+  {q:"Greek thinkers called...?",a:"Philosophers",w:["Gladiators","Emperors","Pharaohs"],cat:"🏺 Greece"},
+  {q:"Greece surrounded by...?",a:"Water (Mediterranean)",w:["Mountains only","Desert","Jungle"],cat:"🏺 Greece"},
+  {q:"Greeks competed in...?",a:"Olympic Games",w:["World Cup","Super Bowl","Colosseum"],cat:"🏺 Greece"},
+  {q:"Sparta focused on...?",a:"Military strength",w:["Art/poetry","Trade only","Farming only"],cat:"🏺 Greece"},
+  {q:"Rome grew into a massive...?",a:"Empire",w:["Island","Village","Democracy"],cat:"🏛️ Rome"},
+  {q:"Early Rome was a republic meaning...?",a:"Leaders elected",w:["Born into power","Gods chose","Random"],cat:"🏛️ Rome"},
+  {q:"Rome built network of...?",a:"Roads",w:["Pyramids","Canals","Walls everywhere"],cat:"🏛️ Rome"},
+  {q:"Romans borrowed ideas from...?",a:"The Greeks",w:["Egyptians","Chinese","Vikings"],cat:"🏛️ Rome"},
+  {q:"Colosseum hosted...?",a:"Entertainment and fights",w:["Senate meetings","Worship","Markets"],cat:"🏛️ Rome"},
+  {q:"Rome fell because...?",a:"Too large, corrupt, overextended",w:["Too small","Too peaceful","Too religious"],cat:"🏛️ Rome"},
+  {q:"Greek stories about gods are...?",a:"Mythology",w:["Textbooks","Science","Legal docs"],cat:"🏺 Greece"},
+
+  {q:"GRAPES stands for...?",a:"Government, Religion, Achievements, Public Works, Economy, Social",w:["Grains, Rice, Apples, Pears, Eggs, Sugar","Geography, Rivers, Agriculture, People, Environment, Science","Games, Rules, Art, Politics, Education, Sports"],cat:"🏛️ Gov"},
+  {q:"The Golden Age of Islam advanced which fields?",a:"Math, science, and medicine",w:["Only military","Only religion","Only farming"],cat:"☪️ Religion"},
+  {q:"Buddhism was founded by...?",a:"Siddhartha Gautama",w:["Confucius","Muhammad","Moses"],cat:"☸️ Religion"},
+  {q:"Hinduism originated in which region?",a:"Indian subcontinent",w:["China","Middle East","Europe"],cat:"🕉️ Religion"},
+  {q:"The Torah is the holy text of which religion?",a:"Judaism",w:["Islam","Christianity","Hinduism"],cat:"✡️ Religion"},
+  {q:"What are the Five Pillars of Islam?",a:"Faith, prayer, charity, fasting, pilgrimage",w:["Five books of the Bible","Five Chinese dynasties","Five Greek gods"],cat:"☪️ Religion"},
+  {q:"Christianity spread through which empire?",a:"The Roman Empire",w:["Chinese Empire","Persian Empire","Egyptian Empire"],cat:"✝️ Religion"},
+  {q:"The Eightfold Path is part of which religion?",a:"Buddhism",w:["Christianity","Islam","Judaism"],cat:"☸️ Religion"},
+  {q:"Sikhism was founded by...?",a:"Guru Nanak",w:["Confucius","Muhammad","Siddhartha"],cat:"🪯 Religion"},
+  {q:"Sikhism emphasizes equality, service, and...?",a:"Justice for all people",w:["Military conquest","Wealth accumulation","Isolation from others"],cat:"🪯 Religion"},
+];
+
+// ═══ CRISES (32 with 5 options each) ═══
+const CR=[
+  {n:"Global Pandemic",e:"🦠",d:"Deadly virus. Hospitals overwhelmed.",o:[{l:"Full Lockdown",e:"🔒",d:"+Health +Edu -GDP",fx:{healthcare:400,education:150,gdp:-350,oil:-150}},{l:"Partial Restrict",e:"⚠️",d:"Moderate all",fx:{healthcare:200,gdp:-100,education:50}},{l:"Economy First",e:"📈",d:"+GDP -Health",fx:{gdp:300,oil:200,healthcare:-400,diplomacy:-200}},{l:"Vaccine Sprint",e:"🧬",d:"+Tech +Health -GDP",fx:{technology:300,healthcare:250,gdp:-450}},{l:"International Coalition",e:"🌍",d:"+Diplo +Health -GDP",fx:{diplomacy:300,healthcare:200,gdp:-250,defense:-100}}]},
+  {n:"Trade War",e:"📦",d:"Rival slaps massive tariffs.",o:[{l:"Counter-Tariffs",e:"🚫",d:"+Def -Diplo",fx:{defense:200,oil:150,diplomacy:-300,gdp:-150}},{l:"Free Trade Deal",e:"🤝",d:"+Diplo +GDP",fx:{diplomacy:300,gdp:200,defense:-100}},{l:"Domestic Subsidies",e:"🏭",d:"+GDP -Diplo",fx:{gdp:250,education:80,diplomacy:-150}},{l:"Sanctions",e:"⚖️",d:"+Def -GDP",fx:{defense:250,gdp:-200,diplomacy:-200}},{l:"Trade Bloc",e:"🌐",d:"+Diplo +GDP -Def",fx:{diplomacy:350,gdp:150,defense:-100}}]},
+  {n:"Cyber Attack",e:"💻",d:"Hackers breach systems.",o:[{l:"Counter-Attack",e:"⚔️",d:"+Def +Tech",fx:{defense:300,technology:200,diplomacy:-250}},{l:"Diplomatic Protest",e:"🕊️",d:"+Diplo -Def",fx:{diplomacy:250,education:100,defense:-200}},{l:"Hire Hackers",e:"🖥️",d:"+Tech big",fx:{technology:400,gdp:-200,diplomacy:-150}},{l:"Upgrade Infra",e:"🔧",d:"+Tech +Def -GDP",fx:{technology:250,defense:200,gdp:-400}},{l:"Deny",e:"🤷",d:"+GDP -Tech -Def",fx:{gdp:100,technology:-200,defense:-150}}]},
+  {n:"Climate Summit",e:"🌍",d:"World leaders gather on climate.",o:[{l:"Sign Accord",e:"🌱",d:"+Diplo +Lithium -Oil",fx:{diplomacy:350,lithium:250,oil:-350,gdp:-150}},{l:"Reject",e:"🏭",d:"+Oil -Diplo big",fx:{oil:300,gdp:200,diplomacy:-450}},{l:"Carbon Tax",e:"💵",d:"+GDP +Tech -Oil",fx:{gdp:200,technology:150,oil:-200}},{l:"Green Investment",e:"☀️",d:"+Tech +Lithium -GDP",fx:{technology:300,lithium:200,gdp:-350}},{l:"Delay",e:"📋",d:"Small gains",fx:{technology:40,education:40}}]},
+  {n:"Refugee Crisis",e:"🚢",d:"Millions flee conflict.",o:[{l:"Open Borders",e:"🏠",d:"+Diplo +Edu -GDP",fx:{diplomacy:400,education:200,gdp:-300,defense:-100}},{l:"Close Borders",e:"🧱",d:"+Def -Diplo big",fx:{defense:200,gdp:100,diplomacy:-450}},{l:"Limited Asylum",e:"📝",d:"Moderate",fx:{diplomacy:150,education:80,gdp:-80}},{l:"Camps Abroad",e:"⛺",d:"+Diplo -GDP",fx:{diplomacy:250,healthcare:80,gdp:-200}},{l:"Military Aid",e:"🏰",d:"+Def +Diplo -GDP",fx:{defense:200,diplomacy:200,gdp:-300}}]},
+  {n:"Oil Crisis",e:"⛽",d:"Prices spike 300%.",o:[{l:"Drill",e:"🛢️",d:"+Oil +GDP",fx:{oil:400,gdp:200,diplomacy:-200}},{l:"Renewables",e:"☀️",d:"+Lithium +Tech",fx:{lithium:350,technology:200,oil:-200,gdp:-250}},{l:"Strategic Reserves",e:"🏗️",d:"+Oil short",fx:{oil:250,gdp:80,defense:-100}},{l:"Ration",e:"📋",d:"+Def -GDP",fx:{defense:100,gdp:-250,education:-100}},{l:"Oil Deal",e:"🤝",d:"+Oil +Diplo",fx:{oil:200,diplomacy:200,defense:-100,gdp:-150}}]},
+  {n:"Vaccine Breakthrough",e:"💉",d:"Scientists create life-saving vaccine.",o:[{l:"Share Globally",e:"🌐",d:"+Diplo big -GDP",fx:{diplomacy:500,healthcare:300,gdp:-400}},{l:"Sell It",e:"💵",d:"+GDP -Diplo",fx:{gdp:500,technology:100,diplomacy:-350}},{l:"Domestic First",e:"🏥",d:"+Health big",fx:{healthcare:450,education:80,diplomacy:-150}},{l:"License Allies",e:"🤝",d:"+Diplo +GDP",fx:{diplomacy:250,gdp:200}},{l:"Open Source",e:"📖",d:"+Edu +Diplo -GDP big",fx:{education:300,diplomacy:350,healthcare:200,gdp:-550}}]},
+  {n:"Nuclear Threat",e:"☢️",d:"Hostile nation building nukes.",o:[{l:"Sanctions",e:"📜",d:"+Diplo -GDP",fx:{diplomacy:300,education:80,gdp:-200,defense:-150}},{l:"Arms Race",e:"🚀",d:"+Def big -GDP",fx:{defense:450,technology:150,diplomacy:-350,gdp:-300}},{l:"Sabotage",e:"🕵️",d:"+Def -Diplo big",fx:{defense:300,technology:200,diplomacy:-450}},{l:"Peace Summit",e:"🕊️",d:"+Diplo big",fx:{diplomacy:450,education:80,defense:-200}},{l:"Nuclear Deterrent",e:"☢️",d:"+Def huge -all",fx:{defense:550,gdp:-450,diplomacy:-350}}]},
+  {n:"Disinfo Crisis",e:"📱",d:"Fake news causing panic.",o:[{l:"Regulate",e:"🔒",d:"+Edu -Tech",fx:{education:300,healthcare:150,technology:-250}},{l:"Free Speech",e:"🗽",d:"+Diplo -Edu",fx:{diplomacy:250,technology:150,education:-300}},{l:"Media Literacy",e:"📚",d:"+Edu big -GDP",fx:{education:400,gdp:-250}},{l:"Fact-Checkers",e:"✅",d:"+Edu +Diplo -GDP",fx:{education:200,diplomacy:150,gdp:-200}},{l:"Shut Down Internet",e:"🚫",d:"+Def -everything",fx:{defense:200,technology:-350,education:-250,diplomacy:-350}}]},
+  {n:"Space Race",e:"🌙",d:"Rival lands on Mars.",o:[{l:"Moon Base",e:"🚀",d:"+Tech big -GDP big",fx:{technology:400,diplomacy:200,education:200,gdp:-700}},{l:"Focus Earth",e:"🌍",d:"+Health +GDP -Tech",fx:{healthcare:200,education:150,gdp:200,technology:-250}},{l:"Private Space",e:"🏢",d:"+Tech +GDP",fx:{technology:300,gdp:150,defense:-100}},{l:"Sat Defense",e:"🛰️",d:"+Def +Tech -GDP",fx:{defense:300,technology:200,gdp:-350}},{l:"Space Tourism",e:"✈️",d:"+GDP +Diplo",fx:{gdp:300,diplomacy:150,technology:-100}}]},
+  {n:"Supply Chain",e:"🚛",d:"Shipping halts. Shelves empty.",o:[{l:"Onshore Mfg",e:"🏭",d:"+Def -GDP",fx:{defense:200,education:100,gdp:-350,diplomacy:-150}},{l:"Emergency Trade",e:"✈️",d:"+Diplo +GDP",fx:{diplomacy:250,gdp:200,defense:-150}},{l:"Stockpile",e:"📦",d:"+Def -GDP",fx:{defense:200,gdp:-200}},{l:"Tech Logistics",e:"🤖",d:"+Tech +GDP",fx:{technology:200,gdp:150,oil:-150}},{l:"Trade Bloc",e:"🌐",d:"+Diplo +GDP",fx:{diplomacy:200,gdp:200,defense:-100}}]},
+  {n:"Water Shortage",e:"💧",d:"Drought. Crops failing.",o:[{l:"Desalination",e:"🔬",d:"+Tech +Health -GDP",fx:{technology:250,healthcare:200,gdp:-450}},{l:"Ration",e:"📋",d:"+GDP -Edu",fx:{gdp:150,defense:100,education:-200,diplomacy:-150}},{l:"Cloud Seeding",e:"🌧️",d:"+Tech -GDP",fx:{technology:300,gdp:-300}},{l:"Import Water",e:"🚢",d:"+Health -GDP",fx:{healthcare:200,gdp:-350}},{l:"Water Treaty",e:"🤝",d:"+Diplo +Health",fx:{diplomacy:250,healthcare:150,gdp:-200}}]},
+  {n:"Election Interference",e:"🗳️",d:"Foreign power meddling.",o:[{l:"Public Accusation",e:"📢",d:"+Diplo +Def",fx:{diplomacy:300,defense:200,gdp:-200}},{l:"Quietly Fix",e:"🕵️",d:"+Tech +Def",fx:{technology:250,defense:200,diplomacy:-200}},{l:"Retaliatory Cyber",e:"💻",d:"+Tech -Diplo",fx:{technology:300,defense:250,diplomacy:-400}},{l:"Intl Investigation",e:"🌐",d:"+Diplo +Edu",fx:{diplomacy:350,education:80,gdp:-200}},{l:"Voter Education",e:"📚",d:"+Edu +Diplo",fx:{education:300,diplomacy:150,gdp:-200}}]},
+  {n:"Border Conflict",e:"⚔️",d:"Troops cross your territory.",o:[{l:"Military Response",e:"🏰",d:"+Def big -all",fx:{defense:550,gdp:-350,diplomacy:-350}},{l:"UN Mediation",e:"🕊️",d:"+Diplo -Def",fx:{diplomacy:400,education:80,defense:-250}},{l:"Negotiate",e:"🤝",d:"+Diplo",fx:{diplomacy:300,gdp:50,defense:-150}},{l:"Economic Pressure",e:"💰",d:"+GDP +Diplo",fx:{gdp:200,diplomacy:200,defense:-100}},{l:"Mobilize",e:"⚔️",d:"+Def huge -all",fx:{defense:650,gdp:-450,diplomacy:-450,healthcare:-100}}]},
+  {n:"Recession",e:"📉",d:"Markets crash. Unemployment soars.",o:[{l:"Stimulus",e:"💰",d:"+GDP +Health",fx:{gdp:400,healthcare:150,defense:-150}},{l:"Austerity",e:"✂️",d:"+Def -all",fx:{defense:100,gdp:-250,healthcare:-200,education:-150}},{l:"Infra Jobs",e:"🏗️",d:"+Edu +GDP",fx:{education:200,gdp:200,defense:-100}},{l:"Tax Cuts",e:"📋",d:"+GDP -Edu",fx:{gdp:350,education:-150,healthcare:-100}},{l:"Print Money",e:"🖨️",d:"+GDP short -Diplo",fx:{gdp:400,diplomacy:-250,healthcare:-100}}]},
+  {n:"Terror Threat",e:"🚨",d:"Intel: imminent attack.",o:[{l:"Surveillance",e:"🔍",d:"+Def +Tech -Edu",fx:{defense:350,technology:150,education:-200,diplomacy:-150}},{l:"Outreach",e:"🤝",d:"+Edu +Diplo -Def",fx:{education:200,diplomacy:200,healthcare:80,defense:-300}},{l:"Raids",e:"⚔️",d:"+Def big -Diplo",fx:{defense:450,diplomacy:-400}},{l:"Intel Sharing",e:"🌐",d:"+Diplo +Def",fx:{diplomacy:250,defense:200,gdp:-150}},{l:"Root Causes",e:"📚",d:"+Edu +Diplo -Def",fx:{education:300,diplomacy:200,gdp:-250,defense:-100}}]},
+  {n:"AI Revolution",e:"🤖",d:"AI threatens millions of jobs.",o:[{l:"Ban AI",e:"🚫",d:"-Tech big",fx:{education:150,technology:-450,gdp:-200}},{l:"Regulate & Retrain",e:"📚",d:"+Edu +Tech -GDP",fx:{education:300,technology:150,gdp:-300}},{l:"Embrace",e:"💻",d:"+Tech +GDP -Edu",fx:{technology:400,gdp:300,education:-250,healthcare:-100}},{l:"UBI",e:"💰",d:"+Edu +Health -GDP big",fx:{education:250,healthcare:200,gdp:-450}},{l:"Public AI",e:"🏛️",d:"+Tech +Edu -GDP",fx:{technology:300,education:200,gdp:-350}}]},
+  {n:"Housing Crisis",e:"🏠",d:"Housing unaffordable. Protests growing.",o:[{l:"Public Housing",e:"🏗️",d:"+Edu +Health -GDP",fx:{education:200,healthcare:200,gdp:-450}},{l:"Deregulate",e:"📋",d:"+GDP -Diplo",fx:{gdp:300,diplomacy:-100,healthcare:-100}},{l:"Rent Controls",e:"⚖️",d:"+Health -GDP",fx:{healthcare:200,education:80,gdp:-200,technology:-100}},{l:"Tax Empty Homes",e:"💰",d:"+GDP +Health",fx:{gdp:200,healthcare:150,diplomacy:-80}},{l:"Do Nothing",e:"🤷",d:"+GDP -Health -Edu",fx:{gdp:100,healthcare:-250,education:-200,diplomacy:-100}}]},
+  {n:"Drug Epidemic",e:"💊",d:"Addiction crisis. Deaths rising.",o:[{l:"War on Drugs",e:"🏰",d:"+Def -Health -Diplo",fx:{defense:200,healthcare:-200,diplomacy:-100,gdp:-200}},{l:"Treatment",e:"🏥",d:"+Health +Edu -GDP",fx:{healthcare:350,education:150,gdp:-350}},{l:"Border Crack",e:"🧱",d:"+Def -Diplo",fx:{defense:250,diplomacy:-200,education:-100}},{l:"Prevention",e:"📚",d:"+Edu +Health -GDP",fx:{education:300,healthcare:200,gdp:-300}},{l:"Pharma Reform",e:"⚖️",d:"+Health +Diplo -GDP",fx:{healthcare:250,diplomacy:100,gdp:-250}}]},
+  {n:"Infrastructure Collapse",e:"🌉",d:"Bridges, roads failing.",o:[{l:"Rebuild",e:"🏗️",d:"+Edu +Health -GDP big",fx:{education:150,healthcare:150,gdp:-550}},{l:"Public-Private",e:"🤝",d:"+GDP +Tech",fx:{gdp:200,technology:150,defense:-100}},{l:"Foreign Investment",e:"🌐",d:"+GDP +Diplo -Def",fx:{gdp:300,diplomacy:150,defense:-100}},{l:"Military Engineers",e:"🏰",d:"+Def +Health -GDP",fx:{defense:200,healthcare:150,gdp:-300}},{l:"Smart City",e:"💻",d:"+Tech -GDP big",fx:{technology:400,gdp:-450}}]},
+  {n:"Famine Warning",e:"🌾",d:"Crop failures. Food shortages.",o:[{l:"Import Food",e:"🚢",d:"+Health -GDP",fx:{healthcare:300,gdp:-350}},{l:"Ration",e:"📋",d:"+Def -Edu",fx:{defense:100,healthcare:150,gdp:-200,education:-100}},{l:"Agri Tech",e:"🔬",d:"+Tech +Health -GDP",fx:{technology:250,healthcare:200,gdp:-350}},{l:"Aid Appeal",e:"🌍",d:"+Diplo +Health -Def",fx:{diplomacy:300,healthcare:250,defense:-200}},{l:"Seize Farms",e:"🏴",d:"+Health -Diplo big",fx:{healthcare:250,defense:150,diplomacy:-350,education:-200}}]},
+  {n:"Diplomatic Scandal",e:"🕵️",d:"Ambassador caught spying.",o:[{l:"Deny",e:"🤷",d:"-Diplo big +Def",fx:{diplomacy:-450,defense:200}},{l:"Apologize",e:"🙏",d:"+Diplo -Def",fx:{diplomacy:200,defense:-150,gdp:-100}},{l:"Fire Them",e:"📋",d:"+Diplo slight",fx:{diplomacy:100,defense:-50}},{l:"Trade Deal",e:"💰",d:"+Diplo +GDP -Def",fx:{diplomacy:250,gdp:150,defense:-100}},{l:"Double Down",e:"⚔️",d:"+Def -Diplo huge",fx:{defense:300,technology:150,diplomacy:-550}}]},
+  {n:"Coup Attempt",e:"🏴",d:"Generals trying to seize power!",o:[{l:"Crush It",e:"⚔️",d:"+Def -Diplo",fx:{defense:400,diplomacy:-300,gdp:-200}},{l:"Negotiate",e:"🤝",d:"+Diplo -Def",fx:{diplomacy:200,defense:-200,education:-100}},{l:"Call Elections",e:"🗳️",d:"+Diplo +Edu -Def",fx:{diplomacy:300,education:200,defense:-300,gdp:-200}},{l:"Foreign Help",e:"🌍",d:"+Diplo +Def -GDP big",fx:{diplomacy:250,defense:250,gdp:-450}},{l:"Purge",e:"🔥",d:"+Def -Diplo -Health",fx:{defense:150,diplomacy:-350,healthcare:-150}}]},
+  {n:"Currency Crisis",e:"💸",d:"Currency crashing. Inflation soaring.",o:[{l:"Raise Rates",e:"📈",d:"+GDP -Health",fx:{gdp:200,healthcare:-200,education:-100}},{l:"IMF Bailout",e:"🌐",d:"+GDP +Diplo -Def",fx:{gdp:300,diplomacy:200,defense:-200}},{l:"Print Money",e:"🖨️",d:"+GDP short -Health big",fx:{gdp:300,healthcare:-250,diplomacy:-300}},{l:"Peg Currency",e:"🔗",d:"+GDP +Diplo -Def",fx:{gdp:200,diplomacy:150,defense:-150}},{l:"Crypto",e:"₿",d:"+Tech +GDP -Diplo",fx:{technology:250,gdp:200,diplomacy:-200}}]},
+  {n:"Youth Unemployment",e:"👨‍🎓",d:"50% of youth jobless. Protests.",o:[{l:"Training",e:"📚",d:"+Edu +Health -GDP",fx:{education:350,healthcare:100,gdp:-300}},{l:"Military Recruit",e:"🏰",d:"+Def -Edu",fx:{defense:300,education:-200,diplomacy:-100}},{l:"Startups",e:"💻",d:"+Tech +GDP -Edu",fx:{technology:250,gdp:150,education:-100}},{l:"Public Works",e:"🏗️",d:"+Edu -GDP big",fx:{education:200,healthcare:100,gdp:-350}},{l:"Lower Wages",e:"📉",d:"+GDP -Health -Edu",fx:{gdp:300,healthcare:-200,education:-150,diplomacy:-100}}]},
+  {n:"Territorial Dispute",e:"🗺️",d:"Allies claim same island.",o:[{l:"Back Stronger",e:"🦅",d:"+Def -Diplo",fx:{defense:200,gdp:150,diplomacy:-250}},{l:"Stay Neutral",e:"⚖️",d:"Slight Diplo",fx:{diplomacy:80,defense:-50}},{l:"UN Resolution",e:"🌐",d:"+Diplo -GDP",fx:{diplomacy:300,education:80,gdp:-200}},{l:"Claim It",e:"🏴",d:"+Def +Oil -Diplo huge",fx:{defense:300,oil:200,diplomacy:-550}},{l:"Joint Zone",e:"🤝",d:"+Diplo +GDP",fx:{diplomacy:250,gdp:150,technology:80,defense:-100}}]},
+  {n:"Media Freedom",e:"📰",d:"Journalists publishing secrets.",o:[{l:"Prosecute",e:"⚖️",d:"+Def -Diplo -Edu",fx:{defense:250,diplomacy:-250,education:-200}},{l:"Press Freedom",e:"🗽",d:"+Diplo +Edu -Def",fx:{diplomacy:300,education:200,defense:-200}},{l:"Classify All",e:"🔒",d:"+Def -Edu big",fx:{defense:350,education:-300,diplomacy:-350}},{l:"Transparency",e:"📖",d:"+Edu +Diplo -Def",fx:{education:300,diplomacy:250,defense:-200}},{l:"State Media",e:"📡",d:"+Def -Edu -Diplo",fx:{defense:200,education:-250,diplomacy:-250}}]},
+  {n:"Grid Failure",e:"🔌",d:"Massive blackout. Millions dark.",o:[{l:"Fossil Fuel",e:"🛢️",d:"+Oil -Diplo",fx:{oil:300,diplomacy:-200,healthcare:-100}},{l:"Solar/Wind Rush",e:"☀️",d:"+Lithium +Tech -GDP big",fx:{lithium:300,technology:200,gdp:-450}},{l:"Nuclear Emergency",e:"☢️",d:"+Tech -Diplo",fx:{technology:250,defense:150,diplomacy:-200,gdp:-250}},{l:"Rolling Blackouts",e:"📋",d:"-Health -Edu",fx:{gdp:80,healthcare:-250,education:-200}},{l:"Import Power",e:"🤝",d:"+Health +Diplo -GDP",fx:{healthcare:150,diplomacy:200,gdp:-250,defense:-100}}]},
+  {n:"Piracy",e:"🏴‍☠️",d:"Pirates attacking trade ships.",o:[{l:"Navy Buildup",e:"🚢",d:"+Def +GDP -Diplo",fx:{defense:300,gdp:150,diplomacy:-200}},{l:"Intl Patrol",e:"🌐",d:"+Diplo +Def -GDP",fx:{diplomacy:250,defense:200,gdp:-250}},{l:"Negotiate",e:"🤝",d:"+Diplo -Def",fx:{diplomacy:200,defense:-200}},{l:"Drones",e:"🤖",d:"+Tech +Def -GDP",fx:{technology:200,defense:200,gdp:-300}},{l:"Arm Ships",e:"⚔️",d:"+Def +GDP -Diplo",fx:{defense:200,gdp:200,diplomacy:-250}}]},
+  {n:"Data Breach",e:"🔓",d:"Millions of citizens' data leaked.",o:[{l:"Privacy Law",e:"⚖️",d:"+Edu +Diplo -GDP",fx:{education:200,diplomacy:200,gdp:-250}},{l:"Blame Foreign",e:"🎯",d:"+Def -Diplo",fx:{defense:250,diplomacy:-300}},{l:"Cyber Invest",e:"🖥️",d:"+Tech +Def -GDP",fx:{technology:300,defense:200,gdp:-350}},{l:"Free Monitoring",e:"💰",d:"+Health +Edu -GDP",fx:{healthcare:150,education:150,gdp:-250}},{l:"Nationalize Tech",e:"🏛️",d:"+Def -Diplo -GDP big",fx:{defense:250,technology:200,diplomacy:-350,gdp:-350}}]},
+  {n:"Olympic Bid",e:"🏅",d:"Chance to host Olympics.",o:[{l:"Full Bid",e:"🏟️",d:"+Diplo big -GDP huge",fx:{diplomacy:500,education:200,gdp:-700}},{l:"Budget Bid",e:"📋",d:"+Diplo -GDP",fx:{diplomacy:200,education:80,gdp:-250}},{l:"Don't Bid",e:"🚫",d:"+GDP -Diplo",fx:{gdp:100,diplomacy:-100}},{l:"Co-Host",e:"🤝",d:"+Diplo +Edu -GDP",fx:{diplomacy:350,education:150,gdp:-350}},{l:"Virtual",e:"💻",d:"+Tech +Diplo -GDP",fx:{technology:250,diplomacy:200,gdp:-300}}]},
+,
+  {n:"School Funding Crisis",e:"🏫",d:"Schools crumbling. Teachers striking over pay.",o:[{l:"Raise Education Budget",e:"💰",d:"+Edu big -GDP",fx:{education:400,gdp:-400}},{l:"Privatize Schools",e:"🏢",d:"+GDP -Edu -Diplo",fx:{gdp:200,education:-300,diplomacy:-150}},{l:"Teacher Pay Raise",e:"🎓",d:"+Edu +Health -GDP",fx:{education:300,healthcare:80,gdp:-350}},{l:"Volunteer Programs",e:"🤝",d:"+Edu slight -Def",fx:{education:150,diplomacy:80,defense:-50}},{l:"Ignore It",e:"🤷",d:"-Edu -Health -Diplo",fx:{education:-300,healthcare:-100,diplomacy:-150}}]},
+  {n:"Category 5 Hurricane",e:"🌀",d:"Massive hurricane heading for your coast. Millions at risk.",o:[{l:"Full Evacuation",e:"🚨",d:"+Health +Diplo -GDP big",fx:{healthcare:300,diplomacy:150,gdp:-500}},{l:"Shelter in Place",e:"🏠",d:"-Health -GDP",fx:{healthcare:-200,gdp:-200}},{l:"Military Rescue Ops",e:"🏰",d:"+Def +Health -GDP",fx:{defense:150,healthcare:200,gdp:-400}},{l:"Request Foreign Aid",e:"🌍",d:"+Diplo +Health -Def",fx:{diplomacy:250,healthcare:200,defense:-150}},{l:"Rebuild Stronger",e:"🏗️",d:"+Tech -GDP huge",fx:{technology:200,education:100,gdp:-600}}]},
+  {n:"Wildfire Season",e:"🔥",d:"Record wildfires destroying homes and forests.",o:[{l:"Deploy Firefighters",e:"🚒",d:"+Health -GDP -Oil",fx:{healthcare:200,gdp:-300,oil:-100}},{l:"Controlled Burns",e:"🌲",d:"+Tech -GDP slight",fx:{technology:100,gdp:-150}},{l:"Evacuate Towns",e:"🚨",d:"+Health +Diplo -GDP",fx:{healthcare:250,diplomacy:100,gdp:-350}},{l:"Climate Action",e:"🌱",d:"+Diplo +Tech -GDP -Oil",fx:{diplomacy:200,technology:150,gdp:-300,oil:-100}},{l:"Pray for Rain",e:"🙏",d:"-Health -Edu",fx:{healthcare:-200,education:-100}}]},
+  {n:"Tornado Outbreak",e:"🌪️",d:"Multiple tornadoes devastating the heartland.",o:[{l:"FEMA Response",e:"🚨",d:"+Health -GDP",fx:{healthcare:250,gdp:-350}},{l:"Storm Shelters",e:"🏗️",d:"+Def +Health -GDP",fx:{defense:100,healthcare:150,gdp:-300}},{l:"Warning System Upgrade",e:"📡",d:"+Tech +Health -GDP",fx:{technology:200,healthcare:100,gdp:-300}},{l:"Insurance Bailout",e:"💰",d:"+Health -GDP big",fx:{healthcare:200,gdp:-450}},{l:"Relocate Communities",e:"🏠",d:"+Health +Edu -GDP huge",fx:{healthcare:200,education:100,gdp:-550}}]},
+  {n:"Blizzard Emergency",e:"❄️",d:"Record snowfall. Power outages. Roads impassable.",o:[{l:"Emergency Shelters",e:"🏥",d:"+Health -GDP",fx:{healthcare:250,gdp:-250}},{l:"Deploy National Guard",e:"🏰",d:"+Def +Health -GDP",fx:{defense:150,healthcare:150,gdp:-300}},{l:"Upgrade Grid",e:"⚡",d:"+Tech -GDP big",fx:{technology:250,gdp:-400}},{l:"Close Everything",e:"🚫",d:"-GDP -Edu +Health",fx:{gdp:-200,education:-100,healthcare:100}},{l:"Distribute Supplies",e:"📦",d:"+Health +Diplo -GDP",fx:{healthcare:200,diplomacy:100,gdp:-300}}]},
+  {n:"Heat Wave Crisis",e:"🌡️",d:"Extreme heat. Elderly dying. Grid strained.",o:[{l:"Cooling Centers",e:"🏥",d:"+Health -GDP",fx:{healthcare:250,gdp:-200}},{l:"Rolling Blackouts",e:"⚡",d:"-Health -Edu +GDP",fx:{healthcare:-150,education:-100,gdp:80}},{l:"Emergency Power",e:"🔋",d:"+Tech -GDP -Oil",fx:{technology:150,gdp:-250,oil:-100}},{l:"Water Distribution",e:"💧",d:"+Health +Diplo -GDP",fx:{healthcare:200,diplomacy:80,gdp:-250}},{l:"Climate Investment",e:"☀️",d:"+Tech +Lithium -GDP big",fx:{technology:200,lithium:150,gdp:-400}}]},
+  {n:"Crime Wave",e:"🚔",d:"Violent crime surging. Citizens afraid to go outside.",o:[{l:"More Police",e:"👮",d:"+Def -GDP -Diplo",fx:{defense:300,gdp:-250,diplomacy:-100}},{l:"Community Programs",e:"🤝",d:"+Edu +Health -GDP",fx:{education:200,healthcare:150,gdp:-300}},{l:"Tough Sentencing",e:"⚖️",d:"+Def -Edu -Diplo",fx:{defense:250,education:-150,diplomacy:-150}},{l:"Surveillance Tech",e:"📷",d:"+Def +Tech -Diplo",fx:{defense:200,technology:150,diplomacy:-200}},{l:"Address Root Causes",e:"📚",d:"+Edu +Health -GDP -Def",fx:{education:250,healthcare:150,gdp:-300,defense:-100}}]},
+  {n:"Gang Violence",e:"🔫",d:"Gang activity escalating in major cities.",o:[{l:"SWAT Raids",e:"🏰",d:"+Def -Diplo -Health",fx:{defense:300,diplomacy:-200,healthcare:-100}},{l:"Youth Programs",e:"🎓",d:"+Edu +Health -GDP",fx:{education:250,healthcare:100,gdp:-300}},{l:"Community Policing",e:"🤝",d:"+Diplo +Def -GDP",fx:{diplomacy:150,defense:150,gdp:-250}},{l:"Economic Zones",e:"💰",d:"+GDP +Edu -Def",fx:{gdp:150,education:150,defense:-100}},{l:"Federal Task Force",e:"🕵️",d:"+Def big -GDP -Diplo",fx:{defense:350,gdp:-300,diplomacy:-150}}]},
+  {n:"Building Code Scandal",e:"🏗️",d:"Inspectors caught approving unsafe buildings for bribes.",o:[{l:"Full Investigation",e:"🔍",d:"+Edu +Diplo -GDP",fx:{education:200,diplomacy:200,gdp:-300}},{l:"Demolish Unsafe",e:"🏚️",d:"+Health -GDP big",fx:{healthcare:200,gdp:-450}},{l:"New Regulations",e:"📋",d:"+Health +Edu -GDP -Tech",fx:{healthcare:150,education:100,gdp:-200,technology:-80}},{l:"Fire Everyone",e:"🔥",d:"+Diplo -GDP",fx:{diplomacy:200,gdp:-200}},{l:"Cover It Up",e:"🤫",d:"+GDP short -Health -Diplo big",fx:{gdp:100,healthcare:-250,diplomacy:-300}}]},
+  {n:"Zoning Dispute",e:"📐",d:"Massive fight over rezoning residential areas for industry.",o:[{l:"Approve Industrial",e:"🏭",d:"+GDP +Oil -Health -Edu",fx:{gdp:300,oil:100,healthcare:-150,education:-100}},{l:"Keep Residential",e:"🏠",d:"+Health +Edu -GDP",fx:{healthcare:150,education:150,gdp:-200}},{l:"Mixed Use Compromise",e:"⚖️",d:"+GDP +Edu slight",fx:{gdp:100,education:80,healthcare:50}},{l:"Public Vote",e:"🗳️",d:"+Diplo +Edu -GDP",fx:{diplomacy:200,education:100,gdp:-150}},{l:"Build Parks Instead",e:"🌲",d:"+Health +Diplo -GDP",fx:{healthcare:200,diplomacy:150,gdp:-250}}]},
+  {n:"Construction Boom",e:"🏙️",d:"Permits flooding in. Infrastructure can't keep up.",o:[{l:"Approve All",e:"✅",d:"+GDP big -Health -Traffic",fx:{gdp:400,healthcare:-150,education:-100}},{l:"Slow Permits",e:"📋",d:"+Health +Edu -GDP",fx:{healthcare:100,education:100,gdp:-200}},{l:"Infrastructure First",e:"🛤️",d:"+Tech -GDP big",fx:{technology:200,gdp:-400}},{l:"Green Building Code",e:"🌱",d:"+Tech +Diplo -GDP",fx:{technology:150,diplomacy:100,gdp:-250}},{l:"Public Housing Priority",e:"🏠",d:"+Health +Edu -GDP",fx:{healthcare:200,education:150,gdp:-350}}]},
+  {n:"Teacher Shortage",e:"👩‍🏫",d:"Not enough teachers. Classes overcrowded. Test scores plunging.",o:[{l:"Raise Teacher Pay",e:"💰",d:"+Edu big -GDP",fx:{education:400,gdp:-400}},{l:"Online Learning",e:"💻",d:"+Tech +Edu -GDP",fx:{technology:150,education:200,gdp:-250}},{l:"Recruit Foreign",e:"🌍",d:"+Edu +Diplo -GDP",fx:{education:250,diplomacy:100,gdp:-250}},{l:"Military Instructors",e:"🏰",d:"+Def +Edu -Diplo",fx:{defense:80,education:200,diplomacy:-100}},{l:"Class Size Waivers",e:"📋",d:"+GDP -Edu -Health",fx:{gdp:100,education:-250,healthcare:-80}}]},
+  {n:"Student Debt Crisis",e:"🎓",d:"Graduates drowning in debt. Can't buy homes or start families.",o:[{l:"Forgive All Debt",e:"💰",d:"+Edu +Diplo -GDP huge",fx:{education:400,diplomacy:200,gdp:-600}},{l:"Income-Based Repayment",e:"📋",d:"+Edu -GDP",fx:{education:200,gdp:-200}},{l:"Free Community College",e:"🏫",d:"+Edu +Health -GDP",fx:{education:300,healthcare:50,gdp:-350}},{l:"Do Nothing",e:"🤷",d:"+GDP -Edu -Diplo",fx:{gdp:100,education:-200,diplomacy:-150}},{l:"Private Sector Solution",e:"🏢",d:"+Tech +GDP -Edu",fx:{technology:150,gdp:100,education:-150}}]},
+  {n:"Research Funding Cut",e:"🔬",d:"Budget crisis threatens to slash science funding by 60%.",o:[{l:"Protect Funding",e:"🛡️",d:"+Tech +Edu -GDP",fx:{technology:300,education:150,gdp:-400}},{l:"Cut Everything",e:"✂️",d:"+GDP -Tech big -Edu",fx:{gdp:300,technology:-400,education:-200}},{l:"Private Partnerships",e:"🤝",d:"+Tech +GDP -Edu",fx:{technology:200,gdp:100,education:-100}},{l:"Redirect to Military R&D",e:"🏰",d:"+Def +Tech -Edu -Diplo",fx:{defense:200,technology:150,education:-200,diplomacy:-100}},{l:"Crowdfunding Campaign",e:"🌐",d:"+Diplo +Tech slight -GDP",fx:{diplomacy:150,technology:100,gdp:-150}}]},
+  {n:"Hospital Overcrowding",e:"🏥",d:"ERs turning patients away. Wait times over 12 hours.",o:[{l:"Build Field Hospitals",e:"🏗️",d:"+Health -GDP big",fx:{healthcare:350,gdp:-450}},{l:"Expand Existing",e:"🏥",d:"+Health -GDP",fx:{healthcare:250,gdp:-300}},{l:"Telemedicine Push",e:"💻",d:"+Tech +Health -GDP",fx:{technology:150,healthcare:200,gdp:-250}},{l:"Train More Doctors",e:"🎓",d:"+Edu +Health -GDP",fx:{education:200,healthcare:150,gdp:-350}},{l:"Ration Care",e:"📋",d:"+GDP -Health -Diplo",fx:{gdp:100,healthcare:-200,diplomacy:-200}}]},
+  {n:"Pollution Emergency",e:"🏭",d:"Air quality dangerous. Children getting sick.",o:[{l:"Shut Down Factories",e:"🚫",d:"+Health -GDP big -Oil",fx:{healthcare:300,gdp:-400,oil:-200}},{l:"Emissions Standards",e:"📋",d:"+Health +Diplo -GDP -Oil",fx:{healthcare:200,diplomacy:100,gdp:-250,oil:-100}},{l:"Green Tech Mandate",e:"🌱",d:"+Tech +Lithium -GDP",fx:{technology:200,lithium:150,gdp:-350}},{l:"Relocate Communities",e:"🏠",d:"+Health -GDP huge",fx:{healthcare:250,gdp:-500}},{l:"Ignore Warnings",e:"🤷",d:"+GDP +Oil -Health big -Diplo",fx:{gdp:200,oil:150,healthcare:-350,diplomacy:-200}}]},
+  {n:"Earthquake",e:"🌋",d:"7.2 magnitude earthquake. Buildings collapsed. Thousands trapped.",o:[{l:"Full Rescue Ops",e:"🚨",d:"+Health +Diplo -GDP big",fx:{healthcare:300,diplomacy:200,gdp:-500}},{l:"Military Response",e:"🏰",d:"+Def +Health -GDP",fx:{defense:150,healthcare:250,gdp:-400}},{l:"International Aid",e:"🌍",d:"+Diplo big +Health -Def",fx:{diplomacy:350,healthcare:200,defense:-150}},{l:"Rebuild Modern",e:"🏗️",d:"+Tech -GDP huge",fx:{technology:250,gdp:-600}},{l:"Minimal Response",e:"📋",d:"+GDP -Health -Diplo big",fx:{gdp:100,healthcare:-300,diplomacy:-300}}]},
+  {n:"Flooding",e:"🌊",d:"Rivers overflowing. Towns underwater. Crops destroyed.",o:[{l:"Emergency Levees",e:"🏗️",d:"+Def -GDP big",fx:{defense:200,healthcare:150,gdp:-400}},{l:"Evacuate Everyone",e:"🚨",d:"+Health +Diplo -GDP",fx:{healthcare:300,diplomacy:100,gdp:-350}},{l:"Dam Construction",e:"🏗️",d:"+Tech +Def -GDP huge",fx:{technology:200,defense:150,gdp:-550}},{l:"Climate Adaptation",e:"🌱",d:"+Tech +Diplo -GDP",fx:{technology:200,diplomacy:150,gdp:-350}},{l:"Pray & Wait",e:"🙏",d:"-Health -GDP -Edu",fx:{healthcare:-200,gdp:-150,education:-100}}]},
+  {n:"Drought & Famine",e:"🏜️",d:"Worst drought in a century. Farms failing. Food prices triple.",o:[{l:"Emergency Imports",e:"🚢",d:"+Health -GDP -Diplo",fx:{healthcare:250,gdp:-350,diplomacy:-100}},{l:"Ration Food",e:"📋",d:"+Def -Health -Edu",fx:{defense:100,healthcare:-100,education:-80}},{l:"Desalination Mega-Project",e:"🔬",d:"+Tech -GDP huge",fx:{technology:300,gdp:-550}},{l:"Foreign Food Aid",e:"🌍",d:"+Diplo +Health -Def",fx:{diplomacy:300,healthcare:200,defense:-200}},{l:"Price Controls",e:"⚖️",d:"+Health -GDP -Tech",fx:{healthcare:150,gdp:-200,technology:-100}}]},
+  {n:"Tsunami Warning",e:"🌊",d:"Massive earthquake offshore. Tsunami expected within hours.",o:[{l:"Full Coastal Evacuation",e:"🚨",d:"+Health -GDP big",fx:{healthcare:350,diplomacy:100,gdp:-450}},{l:"Shelter on High Ground",e:"🏔️",d:"+Health -GDP",fx:{healthcare:200,gdp:-250}},{l:"Deploy Navy",e:"🚢",d:"+Def +Health -GDP",fx:{defense:150,healthcare:200,gdp:-350}},{l:"Seawall Emergency",e:"🏗️",d:"+Tech +Def -GDP huge",fx:{technology:150,defense:150,gdp:-500}},{l:"Alert Only",e:"📡",d:"-Health -Diplo",fx:{healthcare:-200,diplomacy:-150}}]},
+  {n:"Power Grid Cyberattack",e:"💻",d:"Hackers shut down the power grid. Cities go dark.",o:[{l:"Emergency Shutdown",e:"🔌",d:"+Def +Tech -GDP",fx:{defense:200,technology:250,gdp:-350}},{l:"Manual Override",e:"🔧",d:"+Def -Tech -GDP",fx:{defense:200,technology:-100,gdp:-200}},{l:"Counter-Hack",e:"🖥️",d:"+Tech big -Diplo",fx:{technology:400,diplomacy:-250}},{l:"Ask Allies for Help",e:"🌍",d:"+Diplo +Tech -Def",fx:{diplomacy:250,technology:150,defense:-200}},{l:"Restore from Backup",e:"💾",d:"+Tech -GDP",fx:{technology:200,gdp:-300}}]},
+  {n:"Immigration Surge",e:"🛂",d:"Record immigration. Cities overwhelmed. Jobs scarce.",o:[{l:"Expand Programs",e:"🏠",d:"+Diplo +Edu -GDP",fx:{diplomacy:300,education:150,gdp:-350}},{l:"Strict Limits",e:"🧱",d:"+Def +GDP -Diplo big",fx:{defense:150,gdp:150,diplomacy:-400}},{l:"Work Visa System",e:"📋",d:"+GDP +Edu -Def",fx:{gdp:200,education:100,defense:-80}},{l:"Refugee Processing",e:"🤝",d:"+Diplo +Health -GDP",fx:{diplomacy:250,healthcare:100,gdp:-250}},{l:"Deport All",e:"🚫",d:"+Def -Diplo huge -Edu",fx:{defense:200,diplomacy:-500,education:-200}}]},
+  {n:"Tax Revolt",e:"💸",d:"Citizens protesting high taxes. Refusing to pay.",o:[{l:"Lower Taxes",e:"📉",d:"+Diplo +Health -GDP big",fx:{diplomacy:250,healthcare:100,gdp:-400}},{l:"Enforce Collection",e:"👮",d:"+GDP +Def -Diplo",fx:{gdp:250,defense:100,diplomacy:-250}},{l:"Tax Reform",e:"⚖️",d:"+Edu +Diplo -GDP",fx:{education:150,diplomacy:200,gdp:-250}},{l:"Flat Tax",e:"📋",d:"+GDP -Edu -Diplo",fx:{gdp:200,education:-100,diplomacy:-100}},{l:"Crack Down Hard",e:"🏰",d:"+Def +GDP -Diplo big",fx:{defense:200,gdp:200,diplomacy:-400}}]},
+  {n:"Pension Crisis",e:"👴",d:"Pension fund bankrupt. Retirees losing everything.",o:[{l:"Government Bailout",e:"💰",d:"+Health +Diplo -GDP huge",fx:{healthcare:250,diplomacy:200,gdp:-550}},{l:"Raise Retirement Age",e:"📋",d:"+GDP -Health -Diplo",fx:{gdp:250,healthcare:-150,diplomacy:-200}},{l:"Cut Benefits",e:"✂️",d:"+GDP -Health -Diplo big",fx:{gdp:300,healthcare:-200,diplomacy:-300}},{l:"New Investment Strategy",e:"📈",d:"+Tech +GDP -Def",fx:{technology:100,gdp:150,defense:-80}},{l:"Private Pensions",e:"🏢",d:"+GDP -Health -Edu",fx:{gdp:200,healthcare:-150,education:-100}}]},
+  {n:"Public Transit Strike",e:"🚇",d:"All buses and trains stopped. Workers demand better conditions.",o:[{l:"Meet Demands",e:"💰",d:"+Health +Diplo -GDP",fx:{healthcare:150,diplomacy:150,gdp:-300}},{l:"Break the Strike",e:"⚖️",d:"+GDP +Def -Diplo -Health",fx:{gdp:150,defense:100,diplomacy:-250,healthcare:-100}},{l:"Negotiate Compromise",e:"🤝",d:"+Diplo -GDP slight",fx:{diplomacy:200,gdp:-150}},{l:"Automate Transit",e:"🤖",d:"+Tech -GDP -Diplo",fx:{technology:250,gdp:-300,diplomacy:-100}},{l:"Free Rideshare Vouchers",e:"🚗",d:"+Diplo -GDP -Oil",fx:{diplomacy:100,gdp:-200,oil:-80}}]},
+  {n:"Volcanic Eruption",e:"🌋",d:"Active volcano erupting near populated area.",o:[{l:"Mass Evacuation",e:"🚨",d:"+Health +Diplo -GDP big",fx:{healthcare:300,diplomacy:150,gdp:-450}},{l:"Military Airlift",e:"✈️",d:"+Def +Health -GDP",fx:{defense:150,healthcare:250,gdp:-400}},{l:"Scientific Study",e:"🔬",d:"+Tech +Edu -GDP",fx:{technology:200,education:100,gdp:-300}},{l:"International Aid",e:"🌍",d:"+Diplo big -Def",fx:{diplomacy:350,healthcare:150,defense:-150}},{l:"Relocate Permanently",e:"🏠",d:"+Health -GDP huge",fx:{healthcare:250,gdp:-600}}]},
+  {n:"University Protests",e:"✊",d:"Students occupying campuses. Demanding policy changes.",o:[{l:"Listen & Reform",e:"🤝",d:"+Edu +Diplo -GDP",fx:{education:300,diplomacy:200,gdp:-250}},{l:"Police Clear Campus",e:"👮",d:"+Def -Edu -Diplo big",fx:{defense:150,education:-250,diplomacy:-350}},{l:"Negotiate",e:"⚖️",d:"+Edu +Diplo slight",fx:{education:150,diplomacy:150,gdp:-100}},{l:"Close Universities",e:"🚫",d:"+Def -Edu big -Tech",fx:{defense:100,education:-400,technology:-150}},{l:"Student Council Election",e:"🗳️",d:"+Edu +Diplo -GDP",fx:{education:200,diplomacy:200,gdp:-200}}]},
+  {n:"Medical Shortage",e:"💊",d:"Critical medicine shortages. Pharmacies rationing.",o:[{l:"Emergency Production",e:"🏭",d:"+Health -GDP -Oil",fx:{healthcare:300,gdp:-300,oil:-80}},{l:"Import from Allies",e:"🚢",d:"+Health +Diplo -GDP",fx:{healthcare:250,diplomacy:100,gdp:-250}},{l:"Generic Drug Law",e:"⚖️",d:"+Health +Edu -GDP",fx:{healthcare:250,education:80,gdp:-200}},{l:"Ration Strictly",e:"📋",d:"+Def -Health -Diplo",fx:{defense:100,healthcare:-100,diplomacy:-150}},{l:"Invest in Pharma",e:"🔬",d:"+Tech +Health -GDP big",fx:{technology:200,healthcare:200,gdp:-400}}]},
+  {n:"Internet Blackout",e:"📡",d:"Nationwide internet failure. Commerce halted.",o:[{l:"Emergency Repair",e:"🔧",d:"+Tech -GDP big",fx:{technology:300,gdp:-400}},{l:"Military Comms",e:"🏰",d:"+Def +Tech -GDP",fx:{defense:150,technology:200,gdp:-350}},{l:"Paper Systems",e:"📋",d:"-Tech -GDP +Edu slight",fx:{technology:-150,gdp:-200,education:50}},{l:"Satellite Internet",e:"🛰️",d:"+Tech big -GDP big",fx:{technology:400,gdp:-500}},{l:"Ask Tech Companies",e:"💻",d:"+Tech +GDP -Diplo",fx:{technology:250,gdp:100,diplomacy:-150}}]},
+  {n:"Bridge Collapse",e:"🌉",d:"Major bridge collapses during rush hour. Casualties.",o:[{l:"Emergency Rescue",e:"🚨",d:"+Health -GDP",fx:{healthcare:300,gdp:-300}},{l:"Full Infrastructure Audit",e:"🔍",d:"+Tech +Health -GDP big",fx:{technology:150,healthcare:150,gdp:-450}},{l:"Military Engineers",e:"🏰",d:"+Def +Health -GDP",fx:{defense:100,healthcare:200,gdp:-350}},{l:"Fast Rebuild",e:"🏗️",d:"+Tech -GDP big",fx:{technology:200,gdp:-400}},{l:"Investigation & Prosecute",e:"⚖️",d:"+Diplo +Edu -GDP",fx:{diplomacy:200,education:100,gdp:-300}}]},
+  {n:"Stadium Disaster",e:"🏟️",d:"Stadium collapse during major event. Hundreds injured.",o:[{l:"Full Emergency Response",e:"🚨",d:"+Health +Diplo -GDP",fx:{healthcare:350,diplomacy:100,gdp:-400}},{l:"Investigation",e:"🔍",d:"+Edu +Diplo -GDP",fx:{education:150,diplomacy:200,gdp:-250}},{l:"Building Code Overhaul",e:"📋",d:"+Health +Tech -GDP",fx:{healthcare:150,technology:100,gdp:-300}},{l:"Compensation Fund",e:"💰",d:"+Diplo +Health -GDP big",fx:{diplomacy:250,healthcare:200,gdp:-450}},{l:"Blame Contractors",e:"🎯",d:"+Def -Diplo",fx:{defense:100,diplomacy:-200}}]},
+  {n:"Food Safety Scandal",e:"🍔",d:"Contaminated food sickens thousands across the nation.",o:[{l:"Massive Recall",e:"🚨",d:"+Health -GDP big",fx:{healthcare:300,gdp:-400}},{l:"Stricter Regulations",e:"📋",d:"+Health +Edu -GDP",fx:{healthcare:200,education:100,gdp:-300}},{l:"Industry Self-Regulation",e:"🏢",d:"+GDP -Health -Diplo",fx:{gdp:100,healthcare:-200,diplomacy:-150}},{l:"Transparency Campaign",e:"📡",d:"+Edu +Diplo -GDP",fx:{education:200,diplomacy:150,gdp:-250}},{l:"Prosecute Companies",e:"⚖️",d:"+Diplo +Health -GDP",fx:{diplomacy:200,healthcare:150,gdp:-300}}]}
+
+];
+
+const PASSIVES=[
+  {n:"Economic Boom",e:"📈",m:"+250 GDP",fx:{gdp:250}},{n:"Oil Discovery",e:"⛽",m:"+200 Oil",fx:{oil:200}},
+  {n:"Tech IPO",e:"💻",m:"+150 GDP +80 Tech",fx:{gdp:150,technology:80}},{n:"Earthquake",e:"🌋",m:"-200 GDP",fx:{gdp:-200,healthcare:-80}},
+  {n:"Nobel Prize",e:"🏆",m:"+150 Edu +100 Diplo",fx:{education:150,diplomacy:100}},{n:"Market Crash",e:"📉",m:"-250 GDP",fx:{gdp:-250}},
+  {n:"World Cup",e:"⚽",m:"+200 Diplo",fx:{diplomacy:200}},{n:"Lithium Find",e:"🔋",m:"+200 Lithium",fx:{lithium:200}},
+  {n:"Brain Drain",e:"✈️",m:"-100 Edu",fx:{education:-100,technology:-80}},{n:"Foreign Aid",e:"🤝",m:"+120 GDP",fx:{gdp:120,healthcare:80}},
+  {n:"Corruption",e:"😤",m:"-150 GDP",fx:{gdp:-150,diplomacy:-80}},{n:"Medical Win",e:"🧬",m:"+200 Health",fx:{healthcare:200}},
+  {n:"Trade Surplus",e:"🚢",m:"+180 GDP",fx:{gdp:180}},{n:"Tornado",e:"🌪️",m:"-150 GDP -50 Health",fx:{gdp:-150,healthcare:-50}},
+];
+
+const NATIONS=[
+  {id:"iron",n:"The Iron State",e:"🦅",gov:"Authoritarian",att:"hostile",str:70,trade:{oil:2,defense:1}},
+  {id:"pac",n:"Pacifica",e:"🕊️",gov:"Democracy",att:"friendly",str:35,trade:{technology:2,education:1}},
+  {id:"gold",n:"Gold Coast",e:"💎",gov:"Oligarchy",att:"neutral",str:55,trade:{gdp:3,oil:1}},
+  {id:"cel",n:"Celestia",e:"🌸",gov:"Monarchy",att:"neutral",str:60,trade:{diplomacy:1,gdp:2}},
+  {id:"red",n:"Red Federation",e:"🔴",gov:"Totalitarian",att:"hostile",str:85,trade:{oil:3,defense:2}},
+  {id:"grn",n:"Green Alliance",e:"🌿",gov:"Republic",att:"friendly",str:40,trade:{lithium:2,technology:1}},
+];
+
+const TIERS=[{n:"Developing",e:"🏗️",t:0},{n:"Emerging",e:"📈",t:3000},{n:"Regional Power",e:"🏙️",t:15000},{n:"G20",e:"🌐",t:60000},{n:"World Power",e:"🏛️",t:250000},{n:"Superpower",e:"🦅",t:1000000},{n:"Hyperpower",e:"🚀",t:5000000},{n:"Hegemon",e:"🌟",t:20000000}];
+
+const ACHS=[
+  {id:"a1",n:"First Click",e:"👆",d:"Click once",pts:10},
+  {id:"a2",n:"Clicker",e:"🖱️",d:"500 clicks",pts:30},
+  {id:"a3",n:"Click Master",e:"⚡",d:"5,000 clicks",pts:80},
+  {id:"a4",n:"Click God",e:"🌟",d:"50,000 clicks",pts:300},
+  {id:"a5",n:"Builder I",e:"🏗️",d:"15 buildings",pts:20},
+  {id:"a6",n:"Builder II",e:"🏙️",d:"50 buildings",pts:60},
+  {id:"a7",n:"Architect",e:"🏆",d:"100 buildings",pts:150},
+  {id:"a8",n:"Mega City",e:"🌇",d:"200 buildings",pts:400},
+  {id:"a9",n:"Scholar",e:"📝",d:"15 quiz correct",pts:25},
+  {id:"a10",n:"Professor",e:"🎓",d:"50 correct",pts:80},
+  {id:"a11",n:"Genius",e:"🧠",d:"100 correct",pts:200},
+  {id:"a12",n:"On Fire",e:"🔥",d:"5🔥 streak",pts:40},
+  {id:"a13",n:"Unstoppable",e:"💥",d:"10🔥 streak",pts:120},
+  {id:"a14",n:"Perfect Mind",e:"🏆",d:"20🔥 streak",pts:500},
+  {id:"a15",n:"Decider",e:"📋",d:"5 crises",pts:20},
+  {id:"a16",n:"Leader",e:"🌍",d:"15 crises",pts:80},
+  {id:"a17",n:"Veteran",e:"⚠️",d:"30 crises",pts:200},
+  {id:"a18",n:"Diplomat",e:"🤝",d:"3 allies",pts:40},
+  {id:"a19",n:"Alliance Net",e:"🌐",d:"All 6 allied",pts:200},
+  {id:"a20",n:"Warrior",e:"⚔️",d:"Win a war",pts:40},
+  {id:"a21",n:"Conqueror",e:"👑",d:"Win 3 wars",pts:120},
+  {id:"a22",n:"Trader",e:"🚢",d:"3 trade deals",pts:25},
+  {id:"a23",n:"Trade Net",e:"💎",d:"Trade all",pts:80},
+  {id:"a24",n:"Researcher",e:"🔬",d:"5 upgrades",pts:40},
+  {id:"a25",n:"Full Tech",e:"⚛️",d:"All upgrades",pts:250},
+  {id:"a26",n:"Emerging",e:"📈",d:"Emerging tier",pts:15},
+  {id:"a27",n:"Regional",e:"🏙️",d:"Regional Power",pts:30},
+  {id:"a28",n:"G20",e:"🌐",d:"G20 tier",pts:60},
+  {id:"a29",n:"World Power",e:"🏛️",d:"World Power",pts:120},
+  {id:"a30",n:"Superpower",e:"🦅",d:"Superpower",pts:300},
+  {id:"a31",n:"Hyperpower",e:"🚀",d:"Hyperpower",pts:600},
+  {id:"a32",n:"Hegemon",e:"🌟",d:"Global Hegemon",pts:1000},
+  {id:"a33",n:"Oil Baron",e:"🛢️",d:"10,000 Oil",pts:60},
+  {id:"a34",n:"Tech Mogul",e:"💻",d:"10,000 Tech",pts:60},
+  {id:"a35",n:"GDP King",e:"💰",d:"100,000 GDP",pts:100},
+  {id:"a36",n:"Lithium Lord",e:"🔋",d:"10,000 Lithium",pts:80},
+  {id:"a37",n:"Astronaut",e:"🚀",d:"Build Space Program",pts:100},
+  {id:"a38",n:"Nuclear",e:"☢️",d:"Build Nuclear Plant",pts:60},
+  {id:"a39",n:"Iron Curtain",e:"🚫",d:"Sanction all",pts:80},
+  {id:"a40",n:"Speedrun",e:"⚡",d:"G20 in 10 min",pts:300},
+  {id:"a41",n:"Diversified",e:"🌈",d:"2,000+ every resource",pts:250},
+  {id:"a42",n:"Millionaire",e:"💎",d:"1M total earned",pts:200},
+  {id:"a43",n:"Billionaire",e:"💰",d:"10M total earned",pts:500},
+  {id:"a44",n:"DOW Bull",e:"🐂",d:"DOW reaches 20,000",pts:80},
+  {id:"a45",n:"DOW Titan",e:"🏆",d:"DOW reaches 50,000",pts:250},
+  {id:"a46",n:"Low Crime",e:"👮",d:"Crime below 5",pts:100},
+  {id:"a47",n:"Green Nation",e:"🌿",d:"Pollution below 10",pts:80},
+  {id:"a48",n:"Approval 90",e:"👍",d:"90%+ approval",pts:200},
+  {id:"a49",n:"Warmonger",e:"💀",d:"Win 5 wars",pts:300},
+  {id:"a50",n:"War Mini Pro",e:"🎯",d:"Score 15+ in war minigame",pts:150},
+];
+
+function TWC(){
+  const[screen,setScreen]=useState("title");const[relKey,setRelKey]=useState(null);const[period,setPeriod]=useState(null);
+  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
+  const[gk,setGk]=useState(null);const[nN,setNN]=useState("");const[lN,setLN]=useState("");
+  const[res,setRes]=useState({gdp:50,oil:20,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
+  const[blds,setBlds]=useState({});const[upgs,setUpgs]=useState([]);const[tab,setTab]=useState("gather");
+  const[log,setLog]=useState([]);const[ticker,setTicker]=useState([]);
+  const[totE,setTotE]=useState(0);const[totC,setTotC]=useState(0);const[decs,setDecs]=useState(0);const[elapsed,setElapsed]=useState(0);
+  const[crisis,setCrisis]=useState(null);const[crisisResult,setCrisisResult]=useState(null);const[pendingCrisis,setPendingCrisis]=useState(null);const[phoneRinging,setPhoneRinging]=useState(false);const phoneBuzzRef=useRef(null);
+  const crisisQ=useRef(shuffle(CR));const crisisI=useRef(0);
+  const[qA,setQA]=useState(false);const[qQ,setQQ]=useState(null);const[qO,setQO]=useState([]);const[qR,setQR]=useState(null);
+  const[qStrk,setQStrk]=useState(0);const[qTot,setQTot]=useState(0);const[qCorr,setQCorr]=useState(0);const[bestStrk,setBestStrk]=useState(0);
+  const qPool=useRef(shuffle(QS));const qIdx=useRef(0);const[qT,setQT]=useState(15);const qTR=useRef(null);
+  const[rels,setRels]=useState(()=>{const r={};NATIONS.forEach(n=>{r[n.id]={stance:n.att,trade:false,allied:false,atWar:false}});return r});
+  const[warRes,setWarRes]=useState(null);const[warsWon,setWarsWon]=useState(0);
+  const[lbD,setLbD]=useState([]);const[lbL,setLbL]=useState(false);const[subMsg,setSubMsg]=useState("");
+  const[achU,setAchU]=useState([]);const[achToast,setAchToast]=useState(null);
+  const[particles,setParticles]=useState([]);const pid=useRef(0);const tickRef=useRef(0);
+  // SIM STATS
+  const[taxRate,setTaxRate]=useState(15);const[dow,setDow]=useState(10000);
+  // War mini-game
+  const[warGame,setWarGame]=useState(null);const[warTargets,setWarTargets]=useState([]);const[warScore,setWarScore]=useState(0);const[warTime,setWarTime]=useState(0);const warTimerRef=useRef(null);const warSpawnRef=useRef(null);
+  const gov=gk?GOV[gk]:null;
+
+  // ─── DERIVED SIM STATS ──────────────────────────────────────
+  const simStats=useMemo(()=>{
+    const tb=Object.values(blds).reduce((a,b)=>a+b,0);
+    let pop=0,crime=20,poll=0,traff=10,happy=50,util=0;
+    BLDS.forEach(b=>{const c=blds[b.id]||0;if(!c)return;if(b.pop)pop+=b.pop*c;if(b.crime)crime+=b.crime*c;if(b.poll)poll+=b.poll*c;if(b.traff)traff+=b.traff*c;if(b.happy)happy+=b.happy*c;if(b.cat==="util")util+=c});
+    crime=clamp(crime,0,100);poll=clamp(poll,0,100);traff=clamp(traff,0,100);
+    const utilNeed=Math.floor(tb/8)+1;const utilOk=util>=utilNeed;
+    happy=clamp(happy+(taxRate<10?5:taxRate>25?-10:taxRate>20?-5:0)+(crime>50?-15:crime<20?5:0)+(poll>60?-10:poll<20?5:0)+(traff>60?-10:0)+(utilOk?5:-15),5,100);
+    const approval=clamp(Math.floor(happy+(qCorr*0.3)-(crime*0.3)-(poll*0.2)),5,100);
+    return{pop,crime,poll,traff,happy,approval,util,utilNeed,utilOk,tb};
+  },[blds,taxRate,qCorr]);
+
+  const getClick=useCallback(()=>{let b=1;UPGS.forEach(u=>{if(upgs.includes(u.id)&&u.eff.click)b=Math.max(b,u.eff.click)});return b},[upgs]);
+  const getBM=useCallback((bid)=>{let m=1;UPGS.forEach(u=>{if(upgs.includes(u.id)&&u.eff.b===bid)m=Math.max(m,u.eff.m)});return m},[upgs]);
+  const getPS=useCallback(()=>{if(!gov)return{};const ps={};Object.keys(RES).forEach(r=>ps[r]=0);
+    // Tax revenue
+    const taxRb=(relKey&&RELIGIONS[relKey]?.b.gdp)||1;ps.gdp+=(simStats.pop*taxRate*0.002)*(simStats.approval/100)*(gov.b.gdp||1)*taxRb;
+    BLDS.forEach(b=>{const c=blds[b.id]||0;if(!c)return;const m=getBM(b.id);const utilPen=simStats.utilOk?1:0.5;Object.entries(b.prod).forEach(([r,a])=>{const rb=(relKey&&RELIGIONS[relKey]?.b[r])||1;ps[r]+=c*a*m*(gov.b[r]||1)*rb*utilPen})});
+    return ps},[blds,gov,getBM,simStats,taxRate]);
+  const getTier=useCallback(()=>{let t=TIERS[0];TIERS.forEach(x=>{if(totE>=x.t)t=x});return t},[totE]);
+  const ps=useMemo(()=>getPS(),[getPS]);const tier=useMemo(()=>getTier(),[getTier]);
+  const achPts=useMemo(()=>achU.reduce((s,id)=>{const a=ACHS.find(x=>x.id===id);return s+(a?a.pts:0)},0),[achU]);
+  const score=useMemo(()=>achPts+Math.floor(totE/100)+qCorr*10+decs*20,[achPts,totE,qCorr,decs]);
+  const totalBlds=simStats.tb;
+
+  const checkAch=useCallback(id=>{if(achU.includes(id))return;if(!muted)SFX.achieve();setAchU(p=>[...p,id]);const a=ACHS.find(x=>x.id===id);if(a){setAchToast(a);setTimeout(()=>setAchToast(null),3500);setLog(l=>[`🏆 ${a.e} ${a.n} (+${a.pts})`,...l].slice(0,60))}},[achU]);
+
+  useEffect(()=>{
+    if(screen!=="game")return;
+    if(totC>=1)checkAch("a1");if(totC>=500)checkAch("a2");if(totC>=5000)checkAch("a3");if(totC>=50000)checkAch("a4");
+    if(totalBlds>=15)checkAch("a5");if(totalBlds>=50)checkAch("a6");if(totalBlds>=100)checkAch("a7");if(totalBlds>=200)checkAch("a8");
+    if(qCorr>=15)checkAch("a9");if(qCorr>=50)checkAch("a10");if(qCorr>=100)checkAch("a11");
+    if(bestStrk>=5)checkAch("a12");if(bestStrk>=10)checkAch("a13");if(bestStrk>=20)checkAch("a14");
+    if(decs>=5)checkAch("a15");if(decs>=15)checkAch("a16");if(decs>=30)checkAch("a17");
+    const al=Object.values(rels).filter(r=>r.allied).length;if(al>=3)checkAch("a18");if(al>=6)checkAch("a19");
+    const tr=Object.values(rels).filter(r=>r.trade).length;if(tr>=3)checkAch("a22");if(tr>=6)checkAch("a23");
+    if(upgs.length>=5)checkAch("a24");if(upgs.length>=UPGS.length)checkAch("a25");
+    if(totE>=3000)checkAch("a26");if(totE>=15000)checkAch("a27");if(totE>=60000)checkAch("a28");
+    if(totE>=250000)checkAch("a29");if(totE>=1000000)checkAch("a30");if(totE>=5000000)checkAch("a31");if(totE>=20000000)checkAch("a32");
+    if((res.oil||0)>=10000)checkAch("a33");if((res.technology||0)>=10000)checkAch("a34");
+    if((res.gdp||0)>=100000)checkAch("a35");if((res.lithium||0)>=10000)checkAch("a36");
+    if((blds.spaceProgram||0)>=1)checkAch("a37");if((blds.nuclearPlant||0)>=1)checkAch("a38");
+    if(totE>=1000000)checkAch("a42");if(totE>=10000000)checkAch("a43");
+    const allRes=Object.values(res).every(v=>v>=2000);if(allRes)checkAch("a41");
+    if(totE>=60000&&elapsed<=600)checkAch("a40");
+    const allSanc=Object.values(rels).every(r=>r.stance==="hostile");if(allSanc)checkAch("a39");
+    if(dow>=20000)checkAch("a44");if(dow>=50000)checkAch("a45");
+    if(simStats.crime<5)checkAch("a46");if(simStats.poll<10)checkAch("a47");if(simStats.approval>=90)checkAch("a48");
+    if(warsWon>=5)checkAch("a49");
+  },[screen,totC,totalBlds,qCorr,bestStrk,decs,rels,upgs,totE,res,elapsed,blds,dow,simStats,warsWon,checkAch]);
+
+  // Music controller
+  useEffect(()=>{
+    if(!musicRef.current){musicRef.current=new Audio("music.mp3");musicRef.current.loop=true;musicRef.current.volume=0.15;}
+    if(screen==="game"&&!muted){musicRef.current.play().catch(()=>{})}
+    else{musicRef.current.pause()}
+    return()=>{if(musicRef.current)musicRef.current.pause()}
+  },[screen,muted]);
+  // Lottery cooldown timer
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const checkLottery=()=>{
+      try{
+        const last=localStorage.getItem("twc_lottery_"+nN);
+        if(last){const diff=Date.now()-Number(last);const remaining=86400000-diff;if(remaining>0){setLotteryTimer(Math.ceil(remaining/1000))}else{setLotteryTimer(0)}}
+      }catch{setLotteryTimer(0)}
+    };
+    checkLottery();
+    lotteryCheckRef.current=setInterval(checkLottery,1000);
+    return()=>{if(lotteryCheckRef.current)clearInterval(lotteryCheckRef.current)};
+  },[screen,nN]);
+  // Auto-save to localStorage every 30s
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const iv=setInterval(()=>{
+      try{
+        const state={v:2,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon};
+        localStorage.setItem("twc_save_"+nN+"_"+period,JSON.stringify(state));
+      }catch{}
+    },30000);
+    return()=>clearInterval(iv);
+  },[screen,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon]);
+  // News headline rotation
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const iv=setInterval(()=>setNewsIdx(i=>(i+1)%HEADLINES.length),6000);
+    return()=>clearInterval(iv);
+  },[screen]);
+  // DOW ticker
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const iv=setInterval(()=>{
+      setDow(d=>{const change=d*(0.001*(simStats.approval-50)/50)+(Math.random()-0.48)*50;return Math.max(1000,Math.floor(d+change))});
+    },3000);
+    return()=>clearInterval(iv);
+  },[screen,simStats.approval]);
+
+  // Main game loop
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const iv=setInterval(()=>{
+      tickRef.current++;
+      if(tickRef.current%10===0)setElapsed(s=>s+1);
+      const curPS=getPS();
+      setRes(p=>{const n={...p};let earned=0;Object.entries(curPS).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a/10);if(a>0)earned+=a/10});if(earned>0)setTotE(te=>te+earned);return n});
+      if(tickRef.current>50&&tickRef.current%500===0){const ev=PASSIVES[Math.floor(Math.random()*PASSIVES.length)];setRes(p=>{const n={...p};Object.entries(ev.fx).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a)});return n});setLog(l=>[`${ev.e} ${ev.n}: ${ev.m}`,...l].slice(0,60));setTicker(t=>[`${ev.e} ${ev.n}`,...t].slice(0,5))}
+      if(tickRef.current>100&&tickRef.current%600===0&&!crisis&&!pendingCrisis&&!warGame){if(crisisI.current>=crisisQ.current.length){crisisQ.current=shuffle(CR);crisisI.current=0}setPendingCrisis(crisisQ.current[crisisI.current]);crisisI.current++;setPhoneRinging(true);if(!muted){SFX.phone_buzz();phoneBuzzRef.current=setInterval(()=>{if(!muted)SFX.phone_buzz()},3000)}}
+    },100);
+    return()=>clearInterval(iv);
+  },[screen,getPS,crisis,warGame]);
+
+  const canAff=cost=>{for(const[r,a]of Object.entries(cost))if((res[r]||0)<a)return false;return true};
+  const spend=cost=>setRes(p=>{const n={...p};Object.entries(cost).forEach(([r,a])=>n[r]-=a);return n});
+  const bldCost=b=>{const c=blds[b.id]||0;const cost={};Object.entries(b.cost).forEach(([r,base])=>cost[r]=Math.floor(base*Math.pow(b.sc,c)));return cost};
+  const answerPhone=()=>{
+    if(!pendingCrisis)return;
+    if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}
+    setPhoneRinging(false);
+    if(!muted)SFX.crisis();
+    setCrisis(pendingCrisis);
+    setPendingCrisis(null);
+  };
+  const exportSave=()=>{
+    try{
+      const state={v:2,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon};
+      const json=JSON.stringify(state);
+      const b64=btoa(unescape(encodeURIComponent(json)));
+      setSaveCode(b64);
+      setSaveMsg("✅ Save code generated! Copy it below.");
+      if(!muted)SFX.achieve();
+    }catch(e){setSaveMsg("❌ Error creating save: "+e.message)}
+  };
+  const importSave=(code)=>{
+    try{
+      const json=decodeURIComponent(escape(atob(code.trim())));
+      const s=JSON.parse(json);
+      if(!s.v||!s.gk||!s.nN){setSaveMsg("❌ Invalid save code");return}
+      setNN(s.nN||"");setLN(s.lN||"");setGk(s.gk);setRelKey(s.relKey||null);setPeriod(s.period||null);
+      setRes(s.res||{gdp:50,oil:20,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
+      setBlds(s.blds||{});setUpgs(s.upgs||[]);setAchU(s.achU||[]);
+      setTotE(s.totE||0);setTotC(s.totC||0);setDecs(s.decs||0);setElapsed(s.elapsed||0);
+      setQCorr(s.qCorr||0);setQTot(s.qTot||0);setBestStrk(s.bestStrk||0);setQStrk(s.qStrk||0);
+      setTwcBucks(s.twcBucks||0);setInventory(s.inventory||{});
+      setDow(s.dow||10000);setTaxRate(s.taxRate||15);
+      if(s.rels)setRels(s.rels);
+      if(s.warsWon)setWarsWon(s.warsWon);
+      setSaveMsg("✅ Game loaded! All progress restored.");
+      setLoadCode("");
+      if(!muted)SFX.achieve();
+    }catch(e){setSaveMsg("❌ Invalid save code. Check and try again.")}
+  };
+  const buyItem=(item)=>{
+    if(twcBucks<item.price)return;
+    if(!item.stack&&(inventory[item.id]||0)>=1)return;
+    setTwcBucks(b=>b-item.price);
+    setInventory(p=>({...p,[item.id]:(p[item.id]||0)+1}));
+    if(!muted)SFX.build();
+    setLog(l=>[`🛒 Bought ${item.e} ${item.n} for $${item.price} TWC$`,...l].slice(0,60));
+  };
+  const playLottery=()=>{
+    if(lotteryTimer>0)return;
+    const roll=Math.random()*100;
+    let result;
+    if(roll<1){result={won:true,amount:300,tier:"🎰 JACKPOT",color:"#FFD700"};if(!muted)SFX.achieve()}
+    else if(roll<4){result={won:true,amount:100,tier:"💎 BIG WIN",color:"#A855F7"};if(!muted)SFX.achieve()}
+    else if(roll<14){result={won:true,amount:25,tier:"🎉 WINNER",color:"#10B981"};if(!muted)SFX.quiz_right()}
+    else{result={won:false,amount:0,tier:"❌ NO LUCK",color:"#EF4444"};if(!muted)SFX.quiz_wrong()}
+    if(result.won){setTwcBucks(b=>b+result.amount);setLog(l=>[`🎰 Lottery: ${result.tier}! +$${result.amount} TWC$`,...l].slice(0,60))}
+    else{setLog(l=>["🎰 Lottery: Better luck tomorrow!",...l].slice(0,60))}
+    setLotteryResult(result);
+    try{localStorage.setItem("twc_lottery_"+nN,String(Date.now()))}catch{}
+    setLotteryTimer(86400);
+  };
+  const doClick=(e,rk)=>{if(!muted)SFX.click();const rb=(relKey&&RELIGIONS[relKey]?.b[rk])||1;const pw=getClick()*(gov?.b[rk]||1)*rb;setRes(p=>({...p,[rk]:(p[rk]||0)+pw}));setTotC(c=>c+1);setTotE(te=>te+pw);const id=pid.current++;setParticles(p=>[...p,{id,x:e.clientX,y:e.clientY,t:`+${fmt(pw)} ${RES[rk].e}`}]);setTimeout(()=>setParticles(p=>p.filter(x=>x.id!==id)),700)};
+  const doBuild=b=>{const cost=bldCost(b);if(!canAff(cost))return;spend(cost);setBlds(p=>({...p,[b.id]:(p[b.id]||0)+1}));if(!muted)SFX.build();setLog(l=>[`🏗️ ${b.e} ${b.n} #${(blds[b.id]||0)+1}`,...l].slice(0,60))};
+  const doUpg=u=>{if(upgs.includes(u.id)||!canAff(u.cost))return;for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return;spend(u.cost);setUpgs(p=>[...p,u.id]);setLog(l=>[`⬆️ ${u.e} ${u.n}`,...l].slice(0,60))};
+  const meetsReq=u=>{for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return false;return true};
+  const handleCrisis=opt=>{
+    setRes(p=>{const n={...p};Object.entries(opt.fx).forEach(([r,a])=>n[r]=Math.max(0,(n[r]||0)+a));return n});
+    setDecs(d=>d+1);setLog(l=>[`⚠️ ${crisis.e} ${crisis.n} → ${opt.l}`,...l].slice(0,60));
+    setTicker(t=>[`⚠️ ${crisis.n}: ${opt.l}`,...t].slice(0,5));
+    setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx});
+    setCrisis(null);setDow(d=>Math.max(1000,d+Math.floor((Math.random()-0.5)*500)))};
+
+  const startQuiz=()=>{if(qIdx.current>=qPool.current.length){qPool.current=shuffle(QS);qIdx.current=0}const q=qPool.current[qIdx.current];qIdx.current++;setQQ(q);setQO(shuffle([q.a,...q.w]));setQR(null);setQA(true);setQT(15);if(qTR.current)clearInterval(qTR.current);qTR.current=setInterval(()=>{setQT(t=>{if(t<=1){clearInterval(qTR.current);if(!muted)SFX.quiz_wrong();setQR("wrong");setQStrk(0);setQTot(x=>x+1);return 0}return t-1})},1000)};
+  const ansQ=ans=>{if(qR)return;clearInterval(qTR.current);setQTot(x=>x+1);if(ans===qQ.a){const s=qStrk+1;const pts=Math.round(10*Math.min(s,5)*(gov?.b.education||1));if(!muted)SFX.quiz_right();setQR("correct");setQStrk(s);if(s>bestStrk)setBestStrk(s);setQCorr(x=>x+1);setRes(p=>({...p,education:(p.education||0)+pts}));setTotE(te=>te+pts);setLog(l=>[`🎓 +${pts} Edu (${s}🔥)`,...l].slice(0,60))}else{setQR("wrong");setQStrk(0)}};
+
+  // ═══ WAR MINI-GAME ═══
+  const startWarGame=(nat)=>{
+    if(rels[nat.id].atWar||!canAff({defense:100,gdp:200,oil:50}))return;
+    spend({defense:100,gdp:200,oil:50});
+    if(!muted)SFX.war_start();setWarGame(nat);setWarScore(0);setWarTime(10);setWarTargets([]);
+    // Spawn targets
+    let spawnRate=800-nat.str*5;if(spawnRate<300)spawnRate=300;
+    const defBonus=Math.min(30,Math.floor((res.defense||0)/50));
+    warSpawnRef.current=setInterval(()=>{
+      const id=Date.now()+Math.random();
+      const x=10+Math.random()*80;const y=10+Math.random()*70;
+      const lifetime=1200+defBonus*30;
+      setWarTargets(p=>[...p,{id,x,y,born:Date.now(),life:lifetime}]);
+      setTimeout(()=>setWarTargets(p=>p.filter(t=>t.id!==id)),lifetime);
+    },spawnRate);
+    warTimerRef.current=setInterval(()=>{setWarTime(t=>{if(t<=1){clearInterval(warTimerRef.current);clearInterval(warSpawnRef.current);return 0}return t-1})},1000);
+  };
+  const hitTarget=id=>{if(!muted)SFX.war_hit();setWarTargets(p=>p.filter(t=>t.id!==id));setWarScore(s=>s+1)};
+  const endWar=()=>{
+    const nat=warGame;if(!nat)return;
+    const threshold=Math.floor(nat.str/8)+3;
+    const won=warScore>=threshold;
+    setRels(p=>({...p,[nat.id]:{...p[nat.id],atWar:true,trade:false,allied:false,stance:"hostile"}}));
+    if(won){setRes(p=>({...p,gdp:(p.gdp||0)+500,oil:(p.oil||0)+200}));setWarRes({w:true,n:nat.n});setWarsWon(w=>{const nw=w+1;if(nw>=1)checkAch("a20");if(nw>=3)checkAch("a21");if(nw>=5)checkAch("a49");return nw});setLog(l=>[`⚔️ VICTORY: ${nat.n}!`,...l].slice(0,60))}
+    else{setRes(p=>({...p,gdp:Math.max(0,(p.gdp||0)-300),defense:Math.max(0,(p.defense||0)-200)}));setWarRes({w:false,n:nat.n});setLog(l=>[`⚔️ DEFEAT: ${nat.n}`,...l].slice(0,60))}
+    if(warScore>=15)checkAch("a50");
+    setDecs(d=>d+1);setWarGame(null);setWarTargets([]);setTimeout(()=>setWarRes(null),3000);
+    setDow(d=>Math.max(1000,d+(won?500:-800)));
+  };
+
+  useEffect(()=>{if(warGame&&warTime===0)endWar()},[warTime]);
+
+  const doTrade=nat=>{if(rels[nat.id].trade||!canAff({gdp:50,diplomacy:10}))return;spend({gdp:50,diplomacy:10});setRels(p=>({...p,[nat.id]:{...p[nat.id],trade:true,stance:p[nat.id].stance==="hostile"?"neutral":p[nat.id].stance}}));setRes(p=>{const n={...p};Object.entries(nat.trade).forEach(([r,a])=>n[r]=(n[r]||0)+a*50);return n});setLog(l=>[`🚢 Trade: ${nat.n}`,...l].slice(0,60))};
+  const doAlly=nat=>{if(rels[nat.id].allied||rels[nat.id].atWar||!canAff({diplomacy:80,gdp:100}))return;spend({diplomacy:80,gdp:100});setRels(p=>({...p,[nat.id]:{...p[nat.id],allied:true,stance:"friendly"}}));setRes(p=>({...p,diplomacy:(p.diplomacy||0)+100,defense:(p.defense||0)+50}));setLog(l=>[`🤝 Allied: ${nat.n}`,...l].slice(0,60))};
+  const doSanction=nat=>{if(!canAff({diplomacy:30}))return;spend({diplomacy:30});setRels(p=>({...p,[nat.id]:{...p[nat.id],stance:"hostile",trade:false}}));setRes(p=>({...p,defense:(p.defense||0)+80}));setLog(l=>[`🚫 Sanctioned: ${nat.n}`,...l].slice(0,60))};
+
+  const loadLB=async()=>{setLbL(true);setLbD(await fbGet());setLbL(false)};
+  const submitLB=async()=>{setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory)});if(ok===true){setSubMsg("✅ Submitted!");loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
+
+  const S={c:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 10px"},b:(on,col)=>({padding:"5px 10px",borderRadius:7,border:"none",fontWeight:700,fontSize:10,background:on?col:"rgba(255,255,255,0.06)",color:on?"#fff":"rgba(255,255,255,0.2)",cursor:on?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"})};
+  const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
+
+  if(screen==="title"){return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#020508",fontFamily:"Georgia,serif",color:"#d1d5db",padding:16,overflow:"auto",position:"relative"}}>
+      <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.25,pointerEvents:"none"}}><source src="background.mp4" type="video/mp4"/></video>
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.gbtn:hover{transform:translateY(-2px)}.sbtn:hover{filter:brightness(1.15)}.sbtn:active{transform:scale(.97)}*{box-sizing:border-box}`}</style>
+      <div style={{textAlign:"center",animation:"fadeUp .8s ease",maxWidth:540,position:"relative",zIndex:1}}>
+        <div style={{fontSize:12,letterSpacing:6,textTransform:"uppercase",opacity:.25,marginBottom:4}}>Total World Conquest</div>
+        <h1 style={{fontSize:"clamp(22px,5vw,38px)",fontWeight:900,margin:"0 0 2px",letterSpacing:2,background:"linear-gradient(135deg,#FFD700,#FFA500,#FFD700)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>THE MODERN EMPIRE</h1>
+        <p style={{fontSize:10,opacity:.3,letterSpacing:4,marginBottom:16}}>NATION SIMULATION</p>
+        <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:12,flexWrap:"wrap"}}>
+          <input placeholder="Nation..." value={nN} onChange={e=>setNN(e.target.value)} maxLength={18} style={{padding:"8px 12px",fontSize:13,width:160,background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,215,0,.15)",borderRadius:7,color:"#d1d5db",fontFamily:"inherit",outline:"none",textAlign:"center"}}/>
+          <input placeholder="Leader..." value={lN} onChange={e=>setLN(e.target.value)} maxLength={18} style={{padding:"8px 12px",fontSize:13,width:160,background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,215,0,.15)",borderRadius:7,color:"#d1d5db",fontFamily:"inherit",outline:"none",textAlign:"center"}}/>
+        </div>
+        <div style={{display:"flex",gap:5,justifyContent:"center",marginBottom:10}}>
+          <span style={{fontSize:9,opacity:.4,alignSelf:"center"}}>Class Period:</span>
+          {["1st","2nd","5th","6th"].map(p=>(
+            <button key={p} onClick={()=>setPeriod(p)} style={{padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:700,border:period===p?"2px solid #FFD700":"1px solid rgba(255,255,255,.1)",background:period===p?"rgba(255,215,0,.15)":"rgba(255,255,255,.03)",color:period===p?"#FFD700":"#d1d5db",fontFamily:"inherit"}}>{p}</button>
+          ))}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:14}}>
+          {Object.entries(GOV).map(([k,g])=>(
+            <button key={k} className="gbtn" onClick={()=>{setGk(k);if(k==="dictatorship"||k==="totalitarianism")setRelKey(null)}} style={{padding:"7px 8px",textAlign:"left",cursor:"pointer",borderRadius:7,transition:"all .2s",background:gk===k?g.c+"22":"rgba(255,255,255,.02)",border:gk===k?`2px solid ${g.c}`:"1px solid rgba(255,255,255,.06)",color:"#d1d5db",fontFamily:"inherit"}}>
+              <div style={{fontSize:12,fontWeight:700,color:gk===k?g.c:"#d1d5db"}}>{g.e} {g.n}</div>
+              <div style={{fontSize:8,opacity:.4}}>{g.s}</div>
+            </button>
+          ))}
+        </div>
+        {gk&&<div style={{animation:"fadeUp .3s ease"}}>
+        <div style={{marginBottom:10}}><div style={{fontSize:9,opacity:.3,marginBottom:5,textAlign:"center",letterSpacing:2}}>CHOOSE STATE RELIGION</div>
+        {(gk==="dictatorship"||gk==="totalitarianism")?(<div style={{textAlign:"center",padding:"12px 10px",background:"rgba(239,68,68,.08)",border:"1px solid rgba(239,68,68,.2)",borderRadius:8}}><div style={{fontSize:20}}>🚫</div><div style={{fontSize:10,fontWeight:700,color:"#EF4444",marginTop:2}}>RELIGION BANNED</div><div style={{fontSize:8,opacity:.5,marginTop:2}}>{gk==="dictatorship"?"The dictator has outlawed all religion.":"The state is the only authority. Religion is forbidden."}</div><div style={{fontSize:7,opacity:.3,marginTop:4}}>Compensated with higher Defense, Oil, and GDP bonuses.</div></div>):(<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:4}}>
+          {Object.entries(RELIGIONS).map(([k,r])=>(
+            <button key={k} className="gbtn" onClick={()=>setRelKey(k)} style={{padding:"5px 4px",textAlign:"center",cursor:"pointer",borderRadius:6,transition:"all .2s",background:relKey===k?"rgba(255,215,0,.1)":"rgba(255,255,255,.02)",border:relKey===k?"2px solid #FFD700":"1px solid rgba(255,255,255,.06)",color:"#d1d5db",fontFamily:"inherit"}}>
+              <div style={{fontSize:16}}>{r.e}</div>
+              <div style={{fontSize:8,fontWeight:700,color:relKey===k?"#FFD700":"#d1d5db"}}>{r.n}</div>
+              <div style={{fontSize:6,opacity:.4}}>{r.s}</div>
+            </button>
+          ))}
+        </div>)}</div>
+        <button className="sbtn" onClick={()=>{if(!period){alert("Please select your class period!");return}if(!nN.trim())setNN("New Republic");if(!lN.trim())setLN("The Leader");if(!relKey&&gk!=="dictatorship"&&gk!=="totalitarianism")setRelKey("christianity");setScreen("game")}} style={{padding:"10px 32px",fontSize:14,fontWeight:700,cursor:"pointer",background:"linear-gradient(135deg,"+GOV[gk].c+","+GOV[gk].c+"88)",border:"none",borderRadius:8,color:"#fff",fontFamily:"inherit",letterSpacing:2,textTransform:"uppercase",transition:"all .2s",boxShadow:"0 4px 16px "+GOV[gk].c+"44"}}>{GOV[gk].e} Begin</button></div>}
+        <div style={{marginTop:12,fontSize:8,opacity:.2}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC: Modern World</a></div>
+        <div style={{marginTop:6,fontSize:7,opacity:.12}}>Copyright © 2026 Jason Slaughter · PixelED Path, LLC</div>
+      </div>
+    </div>
+  )}
+
+  // ═══ GAME ═══
+  return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Segoe UI',sans-serif",color:"#d1d5db",background:"linear-gradient(160deg,#040810 0%,#0a1525 40%,#0d0a18 70%,#040810 100%)",position:"relative"}}>
+      <video autoPlay loop muted playsInline style={{position:"fixed",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.18,pointerEvents:"none",zIndex:0}}><source src="background.mp4" type="video/mp4"/></video>
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}@keyframes fire{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}@keyframes phoneBuzz{0%,100%{transform:rotate(0deg)}10%{transform:rotate(-8deg)}20%{transform:rotate(8deg)}30%{transform:rotate(-6deg)}40%{transform:rotate(6deg)}50%{transform:rotate(0deg)}}@keyframes phoneGlow{0%,100%{box-shadow:0 0 10px rgba(239,68,68,.3)}50%{box-shadow:0 0 30px rgba(239,68,68,.7),0 0 60px rgba(239,68,68,.3)}}@keyframes achPop{0%{transform:translateY(15px) scale(.8);opacity:0}50%{transform:translateY(-3px) scale(1.05);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}@keyframes targetPulse{0%{transform:scale(1);opacity:1}100%{transform:scale(0.3);opacity:0}}.gbtn:active{transform:scale(.93)!important}.hov:hover:not(:disabled){filter:brightness(1.15)}*{box-sizing:border-box;scrollbar-width:thin}`}</style>
+
+      {particles.map(p=><div key={p.id} style={{position:"fixed",left:p.x-25,top:p.y,pointerEvents:"none",zIndex:9999,fontWeight:800,fontSize:13,color:"#FFD700",textShadow:"0 1px 3px #000",animation:"fadeUp .7s ease forwards"}}>{p.t}</div>)}
+      {achToast&&<div style={{position:"fixed",top:50,left:"50%",transform:"translateX(-50%)",zIndex:9998,background:"linear-gradient(135deg,#FFD700,#FFA500)",color:"#000",padding:"8px 16px",borderRadius:8,fontWeight:700,fontSize:12,animation:"achPop .5s ease",boxShadow:"0 4px 24px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)",whiteSpace:"nowrap"}}>🏆 {achToast.e} {achToast.n} (+{achToast.pts})</div>}
+
+      {/* CRISIS RESULT */}
+      {crisisResult&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10001,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}><div style={{background:"linear-gradient(160deg,#0d1a2a,#1a1028)",border:"1px solid rgba(255,215,0,.2)",borderRadius:12,padding:16,maxWidth:380,width:"100%",animation:"slideIn .3s ease",textAlign:"center"}}><div style={{fontSize:28,marginBottom:2}}>{crisisResult.emoji}</div><div style={{fontSize:14,fontWeight:800,color:"#FFD700",marginBottom:1}}>{crisisResult.name}</div><div style={{fontSize:10,opacity:.4,marginBottom:10}}>Chose: {crisisResult.choiceEmoji} {crisisResult.choice}</div><div style={{fontSize:10,fontWeight:700,opacity:.3,marginBottom:6}}>CONSEQUENCES</div><div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:12}}>{Object.entries(crisisResult.fx).map(([r,a])=><div key={r} style={{padding:"5px 6px",borderRadius:5,background:a>0?"rgba(16,185,129,.08)":"rgba(239,68,68,.08)",border:`1px solid ${a>0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)"}`}}><div style={{fontSize:14}}>{RES[r]?.e||r}</div><div style={{fontSize:12,fontWeight:700,color:a>0?"#6EE7B7":"#EF4444"}}>{a>0?"+":""}{a}</div><div style={{fontSize:7,opacity:.3}}>{RES[r]?.n||r}</div></div>)}</div><button className="hov" onClick={()=>{setCrisisResult(null);setTab("gather")}} style={{padding:"8px 22px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>✅ Back to Dashboard</button></div></div>}
+
+      {/* CRISIS */}
+      {crisis&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:10}}><div style={{background:"linear-gradient(160deg,#1a1028,#0d1a2a)",border:"1px solid rgba(255,80,80,.2)",borderRadius:12,padding:14,maxWidth:440,width:"100%",maxHeight:"90vh",overflow:"auto",animation:"slideIn .3s ease"}}><div style={{textAlign:"center",marginBottom:8}}><div style={{fontSize:10,letterSpacing:4,color:"#EF4444",animation:"pulse 1.5s infinite",textShadow:"0 0 10px rgba(239,68,68,.5)"}}>⚠️ CRISIS ⚠️</div><div style={{fontSize:28,margin:"3px 0"}}>{crisis.e}</div><h2 style={{fontSize:14,fontWeight:800,color:"#FFD700",margin:"0 0 3px"}}>{crisis.n}</h2><p style={{fontSize:10,opacity:.5,lineHeight:1.3}}>{crisis.d}</p></div><div style={{display:"flex",flexDirection:"column",gap:4}}>{crisis.o.map((opt,i)=><button key={i} className="hov" onClick={()=>handleCrisis(opt)} style={{width:"100%",padding:"8px 8px",borderRadius:7,cursor:"pointer",textAlign:"left",background:["rgba(59,130,246,.06)","rgba(239,68,68,.06)","rgba(245,158,11,.06)","rgba(16,185,129,.06)","rgba(168,85,247,.06)"][i%5],border:`1px solid ${["rgba(59,130,246,.15)","rgba(239,68,68,.15)","rgba(245,158,11,.15)","rgba(16,185,129,.15)","rgba(168,85,247,.15)"][i%5]}`,color:"#d1d5db",fontFamily:"inherit"}}><div style={{fontSize:11,fontWeight:700}}>{opt.e} {opt.l}</div><div style={{fontSize:8,opacity:.35}}>{opt.d}</div></button>)}</div></div></div>}
+
+      {/* WAR MINI-GAME */}
+      {warGame&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.95)",zIndex:10002,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:12}}>
+        <div style={{textAlign:"center",marginBottom:8}}><div style={{fontSize:12,color:"#EF4444",fontWeight:700,letterSpacing:3}}>COMBAT: {warGame.n}</div><div style={{fontSize:10,opacity:.4}}>Click the targets! Need {Math.floor(warGame.str/8)+3} hits to win</div></div>
+        <div style={{display:"flex",gap:16,marginBottom:8,fontSize:14}}><span style={{color:"#FFD700",fontWeight:700}}>🎯 {warScore}</span><span style={{color:warTime>3?"#6EE7B7":"#EF4444",fontWeight:700}}>⏱ {warTime}s</span></div>
+        <div style={{width:320,height:250,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.1)",borderRadius:10,position:"relative",overflow:"hidden"}}>
+          {warTargets.map(t=><div key={t.id} onClick={()=>hitTarget(t.id)} style={{position:"absolute",left:`${t.x}%`,top:`${t.y}%`,width:36,height:36,borderRadius:"50%",background:"radial-gradient(circle,#EF4444,#7F1D1D)",border:"2px solid #FCA5A5",cursor:"crosshair",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,animation:`targetPulse ${t.life}ms ease forwards`,boxShadow:"0 0 12px rgba(239,68,68,.5)"}}>🎯</div>)}
+        </div>
+        {warTime===0&&<div style={{marginTop:8,animation:"fadeUp .3s ease"}}><button className="hov" onClick={endWar} style={{padding:"8px 24px",fontSize:13,fontWeight:700,borderRadius:7,border:"none",background:warScore>=Math.floor(warGame.str/8)+3?"#10B981":"#EF4444",color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>{warScore>=Math.floor(warGame.str/8)+3?"🏆 Claim Victory!":"💀 Accept Defeat"}</button></div>}
+      </div>}
+
+      {warRes&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",animation:"slideIn .3s ease"}}><div style={{textAlign:"center"}}><div style={{fontSize:46}}>{warRes.w?"🏆":"💀"}</div><h2 style={{fontSize:22,fontWeight:900,color:warRes.w?"#FFD700":"#EF4444"}}>{warRes.w?"VICTORY!":"DEFEAT!"}</h2><p style={{opacity:.4}}>vs {warRes.n}</p></div></div>}
+
+      {/* TOP BAR */}
+      <div style={{background:"linear-gradient(90deg,rgba(0,0,0,.7),rgba(10,20,35,.6),rgba(0,0,0,.7))",padding:"4px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:2,position:"relative",zIndex:1,borderBottom:"1px solid "+(gov?.c||"#333")+"22"}}>
+        <div style={{display:"flex",alignItems:"center",gap:4}}>
+          <button onClick={()=>{if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}setPhoneRinging(false);setPendingCrisis(null);if(musicRef.current)musicRef.current.pause();setScreen("title")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>←</button><button onClick={()=>{setMuted(m=>!m);if(musicRef.current){if(!muted)musicRef.current.pause();else musicRef.current.play().catch(()=>{})}}} style={{background:muted?"rgba(239,68,68,.15)":"rgba(16,185,129,.15)",border:`1px solid ${muted?"rgba(239,68,68,.3)":"rgba(16,185,129,.3)"}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",color:muted?"#EF4444":"#6EE7B7",fontSize:11,fontFamily:"inherit",fontWeight:700}}>{muted?"🔇 OFF":"🔊 ON"}</button>
+          <span style={{fontSize:14}}>{gov?.e}</span>
+          <div><div style={{fontSize:11,fontWeight:700,color:gov?.c}}>{nN}</div><div style={{fontSize:7,opacity:.25}}>{period} · {tier.e}{tier.n} · {relKey&&RELIGIONS[relKey]?RELIGIONS[relKey].e:""} · 🏆{fmt(score)} · DOW:{fmt(dow)} · {simStats.approval}%👍</div></div>
+        </div>
+      </div>
+
+      {/* RESOURCES */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"rgba(0,0,0,.35)",position:"relative",zIndex:1}}>
+        {Object.entries(RES).map(([k,r])=><div key={k} style={{padding:"2px 3px",textAlign:"center",background:"rgba(255,255,255,.025)"}}><div style={{fontSize:7,opacity:.4}}>{r.e}{r.n}</div><div style={{fontSize:11,fontWeight:700,color:"#e2e8f0"}}>{fmt(res[k]||0)}</div><div style={{fontSize:6,color:(ps[k]||0)>0?"#6EE7B7":"rgba(255,255,255,.1)"}}>{(ps[k]||0)>0?`+${ps[k].toFixed(1)}/s`:"—"}</div></div>)}
+      </div>
+
+      {/* TABS */}
+      <div style={{display:"flex",background:"rgba(0,0,0,.3)",overflowX:"auto",position:"relative",zIndex:1}}>{TABS.map(t=><button key={t.id} onClick={()=>{setTab(t.id);if(t.id==="intel")loadLB()}} style={{flex:"1 0 auto",padding:"4px 1px",border:"none",cursor:"pointer",background:tab===t.id?"rgba(255,255,255,.06)":"transparent",borderBottom:tab===t.id?`2px solid ${gov?.c}`:"2px solid transparent",color:tab===t.id?"#fff":"rgba(255,255,255,.35)",fontFamily:"inherit",fontSize:8,fontWeight:600,whiteSpace:"nowrap"}}>{t.e}<br/>{t.l}</button>)}</div>
+
+      {/* CONTENT */}
+      <div style={{flex:1,overflow:"auto",padding:8,position:"relative",zIndex:1}}>
+        {/* GATHER */}
+        {tab==="gather"&&<div style={{animation:"fadeUp .25s ease"}}>
+          {/* COMMAND CENTER HEADER */}
+          <div style={{textAlign:"center",fontSize:9,opacity:.3,marginBottom:6,letterSpacing:2}}>🏛️ COMMAND CENTER · x{getClick()} POWER</div>
+
+          {/* VIDEO PANELS ROW */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:8}}>
+            <div style={{borderRadius:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.1)",position:"relative",height:80}}>
+              <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}}><source src="stockticker.mp4" type="video/mp4"/></video>
+              <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.8))",padding:"2px 6px"}}><span style={{fontSize:7,color:"#6EE7B7",fontWeight:700}}>📈 DOW: {fmt(dow)} {dow>=10000?"▲":"▼"}</span></div>
+            </div>
+            <div style={{borderRadius:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.1)",position:"relative",height:80}}>
+              <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}}><source src="newscoverage.mp4" type="video/mp4"/></video>
+              <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.8))",padding:"2px 6px"}}><span style={{fontSize:7,color:"#FFD700",fontWeight:700}}>📰 {HEADLINES[newsIdx].substring(0,35)}...</span></div>
+            </div>
+            <div style={{borderRadius:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.1)",position:"relative",height:80}}>
+              <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}}><source src="weather.mp4" type="video/mp4"/></video>
+              <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.8))",padding:"2px 6px"}}><span style={{fontSize:7,color:"#3B82F6",fontWeight:700}}>🌤️ 72°F Partly Cloudy</span></div>
+            </div>
+            <div style={{borderRadius:8,overflow:"hidden",border:"1px solid rgba(255,255,255,.1)",position:"relative",height:80}}>
+              <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}}><source src="monitor.mp4" type="video/mp4"/></video>
+              <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,.8))",padding:"2px 6px"}}><span style={{fontSize:7,color:"#A855F7",fontWeight:700}}>🖥️ Intel · {simStats.approval}% Approval</span></div>
+            </div>
+          </div>
+
+          {/* EMERGENCY PHONE */}
+          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
+            <div onClick={answerPhone} style={{cursor:pendingCrisis?"pointer":"default",position:"relative",textAlign:"center",transition:"all .2s"}}>
+              <img src="phone.png" alt="Emergency Phone" style={{width:pendingCrisis?70:50,height:pendingCrisis?70:50,objectFit:"contain",filter:pendingCrisis?"drop-shadow(0 0 15px rgba(239,68,68,.8))":"grayscale(0.5) brightness(0.6)",animation:phoneRinging?"phoneBuzz .4s infinite":"none",transition:"all .3s"}}/>
+              {pendingCrisis&&<div style={{position:"absolute",top:-6,right:-6,background:"#EF4444",color:"#fff",fontSize:8,fontWeight:800,borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",animation:"phoneGlow 1s infinite"}}>!</div>}
+              <div style={{fontSize:7,opacity:pendingCrisis?.9:.3,color:pendingCrisis?"#EF4444":"#d1d5db",marginTop:2,fontWeight:pendingCrisis?700:400}}>{pendingCrisis?"☎️ INCOMING CRISIS!":"☎️ Hotline quiet"}</div>
+            </div>
+          </div>
+
+          {/* RESOURCE BUTTONS */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5}}>{Object.entries(RES).filter(([k])=>k!=="education").map(([k,r])=>{const gm=gov?.b[k]||1;const unl=RES_UNL[k]?RES_UNL[k](blds):true;return unl?(<button key={k} className="gbtn" onClick={e=>doClick(e,k)} style={{padding:"10px 3px",borderRadius:7,cursor:"pointer",border:"1px solid rgba(255,255,255,.1)",background:"linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.02))",color:"#e2e8f0",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",gap:1,userSelect:"none",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}><span style={{fontSize:24}}>{r.e}</span><span style={{fontSize:10,fontWeight:700}}>{r.n}</span><span style={{fontSize:8,opacity:.3}}>+{fmt(getClick()*gm)}</span></button>):(<div key={k} style={{padding:"10px 3px",borderRadius:7,border:"1px dashed rgba(255,255,255,.06)",display:"flex",flexDirection:"column",alignItems:"center",gap:0,opacity:.25}}><span style={{fontSize:22,filter:"grayscale(1)"}}>🔒</span><span style={{fontSize:10,fontWeight:700}}>{r.n}</span><span style={{fontSize:7,color:"#F59E0B"}}>{RES_HINT[k]}</span></div>)})}<button className="gbtn" onClick={()=>setTab("quiz")} style={{padding:"10px 3px",borderRadius:7,cursor:"pointer",border:"2px solid "+(gov?.c||"#333")+"44",background:(gov?.c||"#333")+"11",color:"#d1d5db",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",gap:0}}><span style={{fontSize:22}}>🎓</span><span style={{fontSize:10,fontWeight:700,color:gov?.c}}>QUIZ</span><span style={{fontSize:7,opacity:.4}}>Only way for Edu!</span>{qStrk>0&&<span style={{fontSize:8,color:"#F59E0B"}}>{qStrk}🔥</span>}</button></div>
+        </div>}
+
+        {tab==="build"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>BUILD · {totalBlds} total · More buildings unlock tiers!</div><div style={{display:"flex",flexDirection:"column",gap:3}}>{BLDS.map(b=>{const cost=bldCost(b);const af=canAff(cost);const c=blds[b.id]||0;const locked=totalBlds<b.tier;if(locked)return(<div key={b.id} style={{display:"flex",alignItems:"center",gap:5,...S.c,opacity:.2}}><span style={{fontSize:14,filter:"grayscale(1)"}}>🔒</span><div style={{flex:1}}><div style={{fontSize:10,fontWeight:700}}>{b.n}</div><div style={{fontSize:7,color:"#F59E0B"}}>Need {b.tier} buildings ({b.tier-totalBlds} more)</div></div></div>);return(<div key={b.id} style={{display:"flex",alignItems:"center",gap:5,...S.c}}><span style={{fontSize:16,width:22,textAlign:"center"}}>{b.e}</span><div style={{flex:1,minWidth:0}}><div style={{fontSize:10,fontWeight:700}}>{b.n}<span style={{opacity:.25,fontWeight:400}}> ×{c}</span></div><div style={{fontSize:7,opacity:.35}}>{b.d}{b.pop?` (+${b.pop} pop)`:""}{b.poll?` (${b.poll>0?"+":""}${b.poll} poll)`:"" }{b.crime?` (${b.crime} crime)`:""}{b.traff?` (${b.traff>0?"+":""}${b.traff} traff)`:""}</div><div style={{fontSize:7,color:"#FFD700",opacity:.5}}>{Object.entries(cost).map(([r,a])=>`${RES[r]?.e||""}${fmt(a)}`).join(" ")}</div></div><button className="hov" onClick={()=>doBuild(b)} disabled={!af} style={S.b(af,gov?.c)}>Build</button></div>)})}</div></div>}
+
+        {/* RESEARCH */}
+        {tab==="research"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>UPGRADES · {upgs.length}/{UPGS.length}</div>{UPGS.filter(u=>!upgs.includes(u.id)&&meetsReq(u)).length===0&&upgs.length===0&&<div style={{textAlign:"center",padding:14,opacity:.2,fontSize:10}}>Build more to unlock.</div>}<div style={{display:"flex",flexDirection:"column",gap:3}}>{UPGS.filter(u=>!upgs.includes(u.id)&&meetsReq(u)).map(u=>{const af=canAff(u.cost);return(<div key={u.id} style={{display:"flex",alignItems:"center",gap:5,...S.c}}><span style={{fontSize:16}}>{u.e}</span><div style={{flex:1}}><div style={{fontSize:10,fontWeight:700}}>{u.n}</div><div style={{fontSize:7,opacity:.35}}>{u.d}</div><div style={{fontSize:7,color:"#FFD700",opacity:.5}}>{Object.entries(u.cost).map(([r,a])=>`${RES[r]?.e||""}${fmt(a)}`).join(" ")}</div></div><button className="hov" onClick={()=>doUpg(u)} disabled={!af} style={S.b(af,"#F59E0B")}>Buy</button></div>)})}</div></div>}
+
+        {/* QUIZ */}
+        {tab==="quiz"&&<div style={{animation:"fadeUp .25s ease",maxWidth:440,margin:"0 auto"}}>{!qA?(<div style={{textAlign:"center",padding:12}}><div style={{fontSize:36,marginBottom:4}}>🎓</div><h2 style={{fontSize:16,fontWeight:800,color:gov?.c,margin:"0 0 4px"}}>KNOWLEDGE IS POWER</h2><p style={{fontSize:9,opacity:.4,marginBottom:10}}>Quiz = only way to earn Education! Streak up to 5x 🔥</p><div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:10,fontSize:10}}><span>✅{qCorr}</span><span>📝{qTot}</span><span>🔥{qStrk}</span><span>⚡Best:{bestStrk}</span></div><button className="hov" onClick={startQuiz} style={{padding:"8px 28px",fontSize:13,fontWeight:700,borderRadius:7,border:"none",background:gov?.c,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>📝 START</button><div style={{marginTop:8}}><button onClick={()=>setTab("gather")} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:5,padding:"4px 12px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>← Back</button></div></div>):(<div style={{padding:4}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><button onClick={()=>{if(qTR.current)clearInterval(qTR.current);setQA(false);setQR(null);setTab("gather")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:8,fontFamily:"inherit"}}>← Exit</button><span style={{fontSize:8,opacity:.3}}>🎓{qCorr}/{qTot}</span></div><div style={{height:3,background:"rgba(255,255,255,.05)",borderRadius:2,marginBottom:6,overflow:"hidden"}}><div style={{height:"100%",width:`${(qT/15)*100}%`,background:qT>5?gov?.c:qT>2?"#F59E0B":"#EF4444",borderRadius:2,transition:"width 1s linear"}}/></div><div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:8,opacity:.35}}><span>{qQ?.cat}</span><span>⏱{qT}s</span>{qStrk>0&&<span style={{color:"#F59E0B"}}>{qStrk}🔥</span>}</div><div style={{...S.c,padding:10,marginBottom:6,textAlign:"center",fontSize:12,fontWeight:600,lineHeight:1.3,minHeight:50,display:"flex",alignItems:"center",justifyContent:"center"}}>{qQ?.q}</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>{qO.map((o,i)=>{const isA=o===qQ?.a;const gn=qR&&isA;return(<button key={i} onClick={()=>ansQ(o)} disabled={!!qR} style={{padding:"8px 5px",borderRadius:6,border:gn?"2px solid #10B981":"1px solid rgba(255,255,255,.05)",background:gn?"rgba(16,185,129,.1)":"rgba(255,255,255,.02)",color:gn?"#6EE7B7":qR&&!isA?"rgba(255,255,255,.12)":"#d1d5db",cursor:qR?"default":"pointer",fontFamily:"inherit",fontSize:10,fontWeight:600,opacity:qR&&!isA?.25:1}}>{o}</button>)})}</div>{qR&&<div style={{textAlign:"center",marginTop:8,animation:"fadeUp .25s ease"}}>{qR==="correct"?<div><div style={{fontSize:24,animation:"fire .5s"}}>✅</div><div style={{fontSize:13,fontWeight:800,color:"#10B981"}}>CORRECT!</div><div style={{fontSize:9,opacity:.4}}>+{Math.round(10*Math.min(qStrk,5)*(gov?.b.education||1))} Edu · {qStrk}🔥</div></div>:<div><div style={{fontSize:24,animation:"shake .3s"}}>❌</div><div style={{fontSize:13,fontWeight:800,color:"#EF4444"}}>WRONG</div><div style={{fontSize:9,opacity:.4}}>Answer: <b>{qQ?.a}</b></div></div>}<div style={{marginTop:5}}><button className="hov" onClick={()=>{setQA(false);setQR(null)}} style={{padding:"5px 14px",fontSize:10,fontWeight:700,borderRadius:5,border:"none",background:gov?.c,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginRight:6}}>NEXT →</button><button onClick={()=>{setQA(false);setQR(null);setTab("gather")}} style={{padding:"5px 10px",fontSize:9,borderRadius:5,border:"1px solid rgba(255,255,255,.08)",background:"rgba(255,255,255,.04)",color:"#d1d5db",cursor:"pointer",fontFamily:"inherit"}}>Done</button></div></div>}</div>)}</div>}
+
+        {/* SIM TAB */}
+        {tab==="store"&&<div style={{animation:"fadeUp .25s ease"}}>
+          <div style={{textAlign:"center",marginBottom:8}}>
+            <div style={{fontSize:9,opacity:.3,letterSpacing:2,marginBottom:3}}>🛒 TWC WEAPON STORE</div>
+            <div style={{fontSize:9,opacity:.4}}>Individual Contribution · Buy weapons for Total World Conquest</div>
+            <div style={{fontSize:18,fontWeight:800,color:"#6EE7B7",marginTop:4}}>💵 ${twcBucks} TWC$</div>
+          </div>
+
+          {/* INVENTORY */}
+          {Object.keys(inventory).length>0&&<div style={{...S.c,padding:8,marginBottom:8}}>
+            <div style={{fontSize:9,opacity:.3,marginBottom:4}}>📦 YOUR INVENTORY</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+              {STORE.filter(item=>inventory[item.id]>0).map(item=>(
+                <div key={item.id} style={{background:"rgba(255,215,0,.08)",border:"1px solid rgba(255,215,0,.15)",borderRadius:6,padding:"4px 8px",display:"flex",alignItems:"center",gap:3}}>
+                  <span style={{fontSize:14}}>{item.e}</span>
+                  <div><div style={{fontSize:9,fontWeight:700,color:"#FFD700"}}>{item.n}</div><div style={{fontSize:7,opacity:.4}}>Owned: {inventory[item.id]}</div></div>
+                </div>
+              ))}
+            </div>
+          </div>}
+
+          {/* STORE GRID */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
+            {STORE.map(item=>{
+              const owned=inventory[item.id]||0;
+              const canBuy=twcBucks>=item.price&&(item.stack||owned<1);
+              const maxed=!item.stack&&owned>=1;
+              return(
+                <div key={item.id} style={{...S.c,padding:8,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",opacity:maxed?.5:1}}>
+                  <div style={{fontSize:24,marginBottom:2}}>{item.e}</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"#FFD700"}}>{item.n}</div>
+                  <div style={{fontSize:7,opacity:.4,marginBottom:3,lineHeight:1.3}}>{item.d}</div>
+                  <div style={{fontSize:13,fontWeight:800,color:"#6EE7B7",marginBottom:2}}>${item.price}</div>
+                  {owned>0&&<div style={{fontSize:7,opacity:.5,marginBottom:2}}>{item.stack?"✅ Stackable":"❌ Max 1"} · Own: {owned}</div>}
+                  <button className="hov" onClick={()=>buyItem(item)} disabled={!canBuy} style={{...S.b(canBuy,"#F59E0B"),width:"100%",padding:"6px 0",fontSize:10}}>
+                    {maxed?"Max Owned":canBuy?"🛒 BUY":"Need $"+(item.price-twcBucks)}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{textAlign:"center",fontSize:7,opacity:.2,marginTop:8}}>Earn TWC$ from the Daily Lottery (Intel tab) · Purchases tracked for classroom use</div>
+        </div>}
+
+        {tab==="sim"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>NATION SIMULATION · G.R.A.P.E.S.</div>
+          <div style={{display:"flex",justifyContent:"center",gap:3,marginBottom:6,flexWrap:"wrap"}}>
+            {[
+              {l:"Government",e:"🏛️",v:gov?.n,c:"#3B82F6"},
+              {l:"Religion",e:relKey?RELIGIONS[relKey]?.e:"⛪",v:relKey?RELIGIONS[relKey]?.n:"None",c:"#C084FC"},
+              {l:"Achievements",e:"🏆",v:achU.length+"/"+ACHS.length,c:"#FFD700"},
+              {l:"Public Works",e:"🏗️",v:totalBlds+" built",c:"#10B981"},
+              {l:"Economy",e:"💰",v:"DOW "+fmt(dow),c:"#F59E0B"},
+              {l:"Social",e:"👥",v:simStats.approval+"% approval",c:"#6EE7B7"},
+            ].map(g=><div key={g.l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:5,padding:"3px 6px",textAlign:"center",minWidth:50}}><div style={{fontSize:12}}>{g.e}</div><div style={{fontSize:7,fontWeight:700,color:g.c}}>{g.l}</div><div style={{fontSize:7,opacity:.4}}>{g.v}</div></div>)}
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:8}}>
+            <div style={S.c}><div style={{fontSize:8,opacity:.3,marginBottom:2}}>📊 DOW JONES</div><div style={{fontSize:20,fontWeight:800,color:dow>=10000?"#6EE7B7":"#EF4444",textShadow:dow>=10000?"0 0 8px rgba(110,231,183,.3)":"0 0 8px rgba(239,68,68,.3)"}}>{fmt(dow)}</div><div style={{fontSize:7,opacity:.3}}>{dow>=10000?"📈 Bull":"📉 Bear"} Market</div></div>
+            <div style={S.c}><div style={{fontSize:8,opacity:.3,marginBottom:2}}>👥 POP & APPROVAL</div><div style={{fontSize:14,fontWeight:700}}>{fmt(simStats.pop)} pop</div><div style={{fontSize:12,fontWeight:700,color:simStats.approval>=60?"#6EE7B7":simStats.approval>=40?"#F59E0B":"#EF4444"}}>{simStats.approval}% approval</div></div>
+          </div>
+          <div style={{...S.c,marginBottom:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><span style={{fontSize:9,opacity:.3}}>💰 TAX RATE</span><span style={{fontSize:12,fontWeight:700,color:"#FFD700"}}>{taxRate}%</span></div>
+            <input type="range" min="5" max="40" value={taxRate} onChange={e=>setTaxRate(Number(e.target.value))} style={{width:"100%",accentColor:gov?.c}}/>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:7,opacity:.3}}><span>5% (happy citizens)</span><span>40% (max revenue)</span></div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
+            {[
+              {n:"Crime",e:"👮",v:simStats.crime,bad:true,tip:"Build Police Stations & Schools"},
+              {n:"Pollution",e:"🌫️",v:simStats.poll,bad:true,tip:"Build Parks & Solar Farms"},
+              {n:"Traffic",e:"🚗",v:simStats.traff,bad:true,tip:"Build Highways & Transit"},
+              {n:"Happiness",e:"😊",v:simStats.happy,bad:false,tip:"Lower taxes, reduce crime/pollution"},
+              {n:"Utilities",e:"⚡",v:simStats.util,bad:false,tip:`Need ${simStats.utilNeed} (have ${simStats.util})`},
+              {n:"Buildings",e:"🏗️",v:totalBlds,bad:false,tip:"Build more to unlock tiers!"},
+            ].map(s=><div key={s.n} style={S.c}><div style={{fontSize:8,opacity:.3}}>{s.e} {s.n}</div><div style={{fontSize:14,fontWeight:700,color:s.bad?(s.v>60?"#EF4444":s.v>30?"#F59E0B":"#6EE7B7"):(typeof s.v==="number"&&s.n==="Happiness"?(s.v>=60?"#6EE7B7":s.v>=40?"#F59E0B":"#EF4444"):"#d1d5db")}}>{s.v}{s.n!=="Buildings"&&s.n!=="Utilities"?"%":""}</div><div style={{fontSize:7,opacity:.25}}>{s.tip}</div></div>)}
+          </div>
+        </div>}
+
+        {/* WORLD */}
+        {tab==="world"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>WORLD · Trade, Ally, Sanction, or ⚔️ War (mini-game!)</div><div style={{display:"flex",flexDirection:"column",gap:5}}>{NATIONS.map(nat=>{const rel=rels[nat.id];const sc=rel.stance==="friendly"?"#6EE7B7":rel.stance==="hostile"?"#EF4444":"#F59E0B";return(<div key={nat.id} style={{...S.c,padding:8}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3}}><div><span style={{fontSize:14,marginRight:3}}>{nat.e}</span><span style={{fontSize:11,fontWeight:700}}>{nat.n}</span><span style={{fontSize:7,opacity:.25,marginLeft:3}}>{nat.gov} Str:{nat.str}</span></div><div style={{display:"flex",gap:2}}>{rel.allied&&<span style={{fontSize:6,background:"rgba(16,185,129,.1)",color:"#6EE7B7",padding:"1px 3px",borderRadius:2}}>🤝</span>}{rel.trade&&<span style={{fontSize:6,background:"rgba(245,158,11,.1)",color:"#F59E0B",padding:"1px 3px",borderRadius:2}}>🚢</span>}{rel.atWar&&<span style={{fontSize:6,background:"rgba(239,68,68,.1)",color:"#EF4444",padding:"1px 3px",borderRadius:2}}>⚔️</span>}<span style={{fontSize:6,color:sc,border:"1px solid "+sc+"22",padding:"1px 3px",borderRadius:2}}>{rel.stance}</span></div></div><div style={{display:"flex",gap:3,flexWrap:"wrap"}}>{!rel.trade&&!rel.atWar&&<button className="hov" onClick={()=>doTrade(nat)} disabled={!canAff({gdp:50,diplomacy:10})} style={S.b(canAff({gdp:50,diplomacy:10}),"#F59E0B")}>🚢Trade</button>}{!rel.allied&&!rel.atWar&&<button className="hov" onClick={()=>doAlly(nat)} disabled={!canAff({diplomacy:80,gdp:100})} style={S.b(canAff({diplomacy:80,gdp:100}),"#10B981")}>🤝Ally</button>}{!rel.atWar&&<button className="hov" onClick={()=>doSanction(nat)} disabled={!canAff({diplomacy:30})} style={S.b(canAff({diplomacy:30}),"#94A3B8")}>🚫Sanction</button>}{!rel.atWar&&!rel.allied&&<button className="hov" onClick={()=>startWarGame(nat)} disabled={!canAff({defense:100,gdp:200,oil:50})} style={S.b(canAff({defense:100,gdp:200,oil:50}),"#EF4444")}>⚔️ War!</button>}</div></div>)})}</div></div>}
+
+        {/* ACHIEVEMENTS */}
+        {tab==="achieve"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>ACHIEVEMENTS · {achU.length}/{ACHS.length} · {achPts}pts</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>{ACHS.map(a=>{const u=achU.includes(a.id);return(<div key={a.id} style={{...S.c,padding:6,opacity:u?1:.25,background:u?"rgba(255,215,0,.04)":"rgba(255,255,255,.01)",border:u?"1px solid rgba(255,215,0,.15)":"1px solid rgba(255,255,255,.03)"}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:14}}>{u?a.e:"🔒"}</span><span style={{fontSize:9,fontWeight:700,color:u?"#FFD700":"rgba(255,255,255,.2)"}}>{a.pts}</span></div><div style={{fontSize:9,fontWeight:700,marginTop:1}}>{a.n}</div><div style={{fontSize:7,opacity:.4}}>{a.d}</div></div>)})}</div></div>}
+
+        {/* INTEL */}
+        {tab==="intel"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>INTEL & LEADERBOARD</div>
+          <div style={{...S.c,padding:10,marginBottom:6,background:"linear-gradient(135deg,rgba(255,215,0,.06),rgba(168,85,247,.06))",border:"1px solid rgba(255,215,0,.15)"}}>
+          <div style={{textAlign:"center",marginBottom:6}}><span style={{fontSize:20}}>🎰</span><div style={{fontSize:11,fontWeight:700,color:"#FFD700"}}>DAILY TWC$ LOTTERY</div><div style={{fontSize:8,opacity:.4}}>1% Jackpot ($300) · 3% Big ($100) · 10% Win ($25)</div><div style={{fontSize:10,fontWeight:700,color:"#6EE7B7",marginTop:3}}>💵 Your TWC$: ${twcBucks}</div></div>
+          {lotteryTimer>0?(<div style={{textAlign:"center"}}><div style={{fontSize:9,opacity:.4}}>Next draw in:</div><div style={{fontSize:14,fontWeight:700,color:"#F59E0B"}}>{Math.floor(lotteryTimer/3600)}h {Math.floor((lotteryTimer%3600)/60)}m {lotteryTimer%60}s</div></div>):(<div style={{textAlign:"center"}}><button className="hov" onClick={playLottery} style={{padding:"8px 24px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"linear-gradient(135deg,#FFD700,#F59E0B)",color:"#000",cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 12px rgba(255,215,0,.3)"}}>🎰 Play Lottery</button></div>)}
+          {lotteryResult&&<div style={{textAlign:"center",marginTop:6,animation:"fadeUp .3s ease"}}><div style={{fontSize:16,fontWeight:800,color:lotteryResult.color}}>{lotteryResult.tier}</div>{lotteryResult.won&&<div style={{fontSize:11,color:"#6EE7B7"}}>+${lotteryResult.amount} TWC$!</div>}</div>}
+        <div style={{fontSize:8,opacity:.3,marginTop:4}}>💰 Visit the Store tab to spend TWC$!</div>
+        </div>
+        <div style={{...S.c,padding:10,marginBottom:6}}>
+          <div style={{fontSize:9,opacity:.3,marginBottom:4,textAlign:"center"}}>💾 SAVE & LOAD GAME</div>
+          <div style={{display:"flex",gap:4,justifyContent:"center",marginBottom:6}}>
+            <button className="hov" onClick={exportSave} style={{padding:"6px 14px",fontSize:10,fontWeight:700,borderRadius:6,border:"none",background:"#3B82F6",color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>💾 Export Save</button>
+            <button className="hov" onClick={()=>{try{const ls=localStorage.getItem("twc_save_"+nN+"_"+period);if(ls){const s=JSON.parse(ls);importSave(btoa(unescape(encodeURIComponent(ls))));setSaveMsg("✅ Auto-save restored!")}else{setSaveMsg("⚠️ No auto-save found for "+nN+" ("+period+")")}}catch{setSaveMsg("❌ Error loading auto-save")}}} style={{padding:"6px 14px",fontSize:10,fontWeight:700,borderRadius:6,border:"none",background:"#10B981",color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>🔄 Load Auto-Save</button>
+          </div>
+          {saveCode&&<div style={{marginBottom:6}}><div style={{fontSize:8,opacity:.4,marginBottom:2}}>📋 Copy this save code:</div><textarea value={saveCode} readOnly onClick={e=>{e.target.select();try{navigator.clipboard.writeText(saveCode);setSaveMsg("✅ Copied to clipboard!")}catch{}}} style={{width:"100%",height:50,fontSize:8,fontFamily:"monospace",background:"rgba(0,0,0,.3)",color:"#6EE7B7",border:"1px solid rgba(110,231,183,.2)",borderRadius:4,padding:4,resize:"none"}}/></div>}
+          <div style={{marginBottom:4}}><div style={{fontSize:8,opacity:.4,marginBottom:2}}>📥 Paste a save code to load:</div><div style={{display:"flex",gap:3}}><input value={loadCode} onChange={e=>setLoadCode(e.target.value)} placeholder="Paste save code here..." style={{flex:1,padding:"5px 8px",fontSize:9,background:"rgba(0,0,0,.3)",border:"1px solid rgba(255,255,255,.1)",borderRadius:4,color:"#d1d5db",fontFamily:"monospace",outline:"none"}}/><button className="hov" onClick={()=>importSave(loadCode)} disabled={!loadCode.trim()} style={{...S.b(!!loadCode.trim(),"#F59E0B"),fontSize:10}}>📥 Load</button></div></div>
+          {saveMsg&&<div style={{fontSize:9,textAlign:"center",marginTop:3,color:saveMsg.includes("✅")?"#6EE7B7":saveMsg.includes("⚠️")?"#F59E0B":"#EF4444"}}>{saveMsg}</div>}
+        </div>
+        <div style={{...S.c,padding:8,marginBottom:6,textAlign:"center"}}><button className="hov" onClick={submitLB} style={{padding:"5px 16px",fontSize:10,fontWeight:700,borderRadius:6,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>🏆 Submit Score ({fmt(score)}) · TWC${twcBucks}</button>{subMsg&&<div style={{fontSize:8,marginTop:2,color:subMsg.includes("✅")?"#6EE7B7":"#EF4444"}}>{subMsg}</div>}</div>
+          <div style={S.c}><div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}><span style={{fontSize:8,opacity:.3}}>🏆 LEADERBOARD</span><button onClick={loadLB} style={{fontSize:7,background:"rgba(255,255,255,.05)",border:"none",color:"#d1d5db",borderRadius:3,padding:"1px 5px",cursor:"pointer",fontFamily:"inherit"}}>↻</button></div>{lbL&&<div style={{textAlign:"center",padding:5,opacity:.3,fontSize:8}}>Loading...</div>}{!lbL&&lbD.length===0&&<div style={{textAlign:"center",padding:5,opacity:.15,fontSize:8}}>No scores yet!</div>}{!lbL&&lbD.map((e,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",borderBottom:"1px solid rgba(255,255,255,.02)",fontSize:8}}><span style={{width:16,textAlign:"center",fontWeight:700,color:i<3?"#FFD700":"rgba(255,255,255,.25)"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":`#${i+1}`}</span><span style={{flex:1,fontWeight:600}}>{e.name}</span><span style={{fontSize:7,color:"#F59E0B",fontWeight:600,marginRight:3}}>{e.period||""}</span><span style={{opacity:.25,fontSize:7}}>{e.nation}</span><span style={{fontWeight:700,color:"#FFD700"}}>{fmt(e.score)}</span></div>)}</div>
+          <div style={{...S.c,marginTop:6}}><div style={{fontSize:8,opacity:.25,marginBottom:2}}>📜 LOG</div><div style={{maxHeight:120,overflow:"auto"}}>{log.map((e,i)=><div key={i} style={{fontSize:7,padding:"1px 0",opacity:Math.max(.15,1-i*.02)}}>{e}</div>)}</div></div>
+        </div>}
+      </div>
+
+      <div style={{background:"linear-gradient(90deg,rgba(0,0,0,.8),rgba(10,20,40,.8),rgba(0,0,0,.8))",borderTop:"1px solid rgba(255,215,0,.12)",padding:"3px 10px",position:"relative",zIndex:1,overflow:"hidden",display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:8,color:"#FFD700",fontWeight:700,flexShrink:0}}>📡 LIVE</span>
+        <span style={{fontSize:8,color:dow>=10000?"#6EE7B7":"#EF4444",fontWeight:700,flexShrink:0}}>DOW {fmt(dow)} {dow>=10000?"▲":"▼"}</span>
+        <span style={{fontSize:8,opacity:.2,flexShrink:0}}>│</span>
+        <span style={{fontSize:8,color:"#3B82F6",fontWeight:700,flexShrink:0}}>OIL {fmt(res.oil||0)}</span>
+        <span style={{fontSize:8,opacity:.2,flexShrink:0}}>│</span>
+        <span style={{fontSize:8,color:"#A855F7",fontWeight:700,flexShrink:0}}>LITH {fmt(res.lithium||0)}</span>
+        <span style={{fontSize:8,opacity:.2,flexShrink:0}}>│</span>
+        {ticker.length>0?<span style={{fontSize:8,color:"#EF4444",flexShrink:0,fontWeight:600}}>⚡ {ticker[0]}</span>:<span style={{fontSize:8,opacity:.35,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>📰 {HEADLINES[newsIdx]}</span>}
+      </div>
+      <div style={{textAlign:"center",padding:"2px 0",fontSize:6,opacity:.1,position:"relative",zIndex:1}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC</a> · Copyright © 2026 Jason Slaughter · PixelED Path, LLC</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TWC));
+</script>
+</body>
+</html>
