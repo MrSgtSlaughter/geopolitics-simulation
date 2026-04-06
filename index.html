@@ -489,7 +489,7 @@ function TWC(){
   const[blds,setBlds]=useState({});const[upgs,setUpgs]=useState([]);const[tab,setTab]=useState("gather");
   const[log,setLog]=useState([]);const[ticker,setTicker]=useState([]);
   const[totE,setTotE]=useState(0);const[totC,setTotC]=useState(0);const[decs,setDecs]=useState(0);const[elapsed,setElapsed]=useState(0);
-  const[crisis,setCrisis]=useState(null);const[crisisResult,setCrisisResult]=useState(null);const[pendingCrisis,setPendingCrisis]=useState(null);const[phoneRinging,setPhoneRinging]=useState(false);const phoneBuzzRef=useRef(null);
+  const[crisis,setCrisis]=useState(null);const[crisisResult,setCrisisResult]=useState(null);const[pendingCrisis,setPendingCrisis]=useState(null);const[phoneRinging,setPhoneRinging]=useState(false);const phoneBuzzRef=useRef(null);const[phoneSilenced,setPhoneSilenced]=useState(false);const pendingRef=useRef(false);
   const crisisQ=useRef(shuffle(CR));const crisisI=useRef(0);
   const[qA,setQA]=useState(false);const[qQ,setQQ]=useState(null);const[qO,setQO]=useState([]);const[qR,setQR]=useState(null);
   const[qStrk,setQStrk]=useState(0);const[qTot,setQTot]=useState(0);const[qCorr,setQCorr]=useState(0);const[bestStrk,setBestStrk]=useState(0);
@@ -628,7 +628,7 @@ function TWC(){
       const curPS=getPS();
       setRes(p=>{const n={...p};let earned=0;Object.entries(curPS).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a/10);if(a>0)earned+=a/10});if(earned>0)setTotE(te=>te+earned);return n});
       if(tickRef.current>50&&tickRef.current%500===0){const ev=PASSIVES[Math.floor(Math.random()*PASSIVES.length)];setRes(p=>{const n={...p};Object.entries(ev.fx).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a)});return n});setLog(l=>[`${ev.e} ${ev.n}: ${ev.m}`,...l].slice(0,60));setTicker(t=>[`${ev.e} ${ev.n}`,...t].slice(0,5))}
-      if(tickRef.current>100&&tickRef.current%600===0&&!crisis&&!pendingCrisis&&!warGame){if(crisisI.current>=crisisQ.current.length){crisisQ.current=shuffle(CR);crisisI.current=0}setPendingCrisis(crisisQ.current[crisisI.current]);crisisI.current++;setPhoneRinging(true);if(!muted){SFX.phone_buzz();phoneBuzzRef.current=setInterval(()=>{if(!muted)SFX.phone_buzz()},3000)}}
+      if(tickRef.current>100&&tickRef.current%900===0&&!crisis&&!pendingCrisis&&!warGame){if(crisisI.current>=crisisQ.current.length){crisisQ.current=shuffle(CR);crisisI.current=0}pendingRef.current=true;setPendingCrisis(crisisQ.current[crisisI.current]);crisisI.current++;setPhoneRinging(true);if(!muted)SFX.phone_buzz();phoneBuzzRef.current=setInterval(()=>{if(!pendingRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null;return}if(!muted&&!phoneSilenced)SFX.phone_buzz()},3000)}
     },100);
     return()=>clearInterval(iv);
   },[screen,getPS,crisis,warGame]);
@@ -638,8 +638,10 @@ function TWC(){
   const bldCost=b=>{const c=blds[b.id]||0;const cost={};Object.entries(b.cost).forEach(([r,base])=>cost[r]=Math.floor(base*Math.pow(b.sc,c)));return cost};
   const answerPhone=()=>{
     if(!pendingCrisis)return;
+    pendingRef.current=false;
     if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}
     setPhoneRinging(false);
+    setPhoneSilenced(false);
     if(!muted)SFX.crisis();
     setCrisis(pendingCrisis);
     setPendingCrisis(null);
@@ -720,7 +722,7 @@ function TWC(){
     setDecs(d=>d+1);setLog(l=>[`⚠️ ${crisis.e} ${crisis.n} → ${opt.l}`,...l].slice(0,60));
     setTicker(t=>[`⚠️ ${crisis.n}: ${opt.l}`,...t].slice(0,5));
     setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx});
-    setCrisis(null);setDow(d=>Math.max(1000,d+Math.floor((Math.random()-0.5)*500)))};
+    setCrisis(null);pendingRef.current=false;if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}setPhoneRinging(false);setPhoneSilenced(false);setDow(d=>Math.max(1000,d+Math.floor((Math.random()-0.5)*500)))};
 
   const startQuiz=()=>{if(qIdx.current>=qPool.current.length){qPool.current=shuffle(QS);qIdx.current=0}const q=qPool.current[qIdx.current];qIdx.current++;setQQ(q);setQO(shuffle([q.a,...q.w]));setQR(null);setQA(true);setQT(15);if(qTR.current)clearInterval(qTR.current);qTR.current=setInterval(()=>{setQT(t=>{if(t<=1){clearInterval(qTR.current);if(!muted)SFX.quiz_wrong();setQR("wrong");setQStrk(0);setQTot(x=>x+1);return 0}return t-1})},1000)};
   const ansQ=ans=>{if(qR)return;clearInterval(qTR.current);setQTot(x=>x+1);if(ans===qQ.a){const s=qStrk+1;const pts=Math.round(10*Math.min(s,5)*(gov?.b.education||1));if(!muted)SFX.quiz_right();setQR("correct");setQStrk(s);if(s>bestStrk)setBestStrk(s);setQCorr(x=>x+1);setRes(p=>({...p,education:(p.education||0)+pts}));setTotE(te=>te+pts);setLog(l=>[`🎓 +${pts} Edu (${s}🔥)`,...l].slice(0,60))}else{setQR("wrong");setQStrk(0)}};
@@ -867,7 +869,7 @@ function TWC(){
       {/* TOP BAR */}
       <div style={{background:"linear-gradient(90deg,rgba(0,0,0,.7),rgba(10,20,35,.6),rgba(0,0,0,.7))",padding:"4px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:2,position:"relative",zIndex:1,borderBottom:"1px solid "+(gov?.c||"#333")+"22"}}>
         <div style={{display:"flex",alignItems:"center",gap:4}}>
-          <button onClick={()=>{if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}setPhoneRinging(false);setPendingCrisis(null);if(musicRef.current)musicRef.current.pause();setScreen("title")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>←</button><button onClick={()=>{setMuted(m=>!m);if(musicRef.current){if(!muted)musicRef.current.pause();else musicRef.current.play().catch(()=>{})}}} style={{background:muted?"rgba(239,68,68,.15)":"rgba(16,185,129,.15)",border:`1px solid ${muted?"rgba(239,68,68,.3)":"rgba(16,185,129,.3)"}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",color:muted?"#EF4444":"#6EE7B7",fontSize:11,fontFamily:"inherit",fontWeight:700}}>{muted?"🔇 OFF":"🔊 ON"}</button>
+          <button onClick={()=>{if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}pendingRef.current=false;setPhoneRinging(false);setPendingCrisis(null);if(musicRef.current)musicRef.current.pause();setScreen("title")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>←</button><button onClick={()=>{setMuted(m=>!m);if(musicRef.current){if(!muted)musicRef.current.pause();else musicRef.current.play().catch(()=>{})}}} style={{background:muted?"rgba(239,68,68,.15)":"rgba(16,185,129,.15)",border:`1px solid ${muted?"rgba(239,68,68,.3)":"rgba(16,185,129,.3)"}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",color:muted?"#EF4444":"#6EE7B7",fontSize:11,fontFamily:"inherit",fontWeight:700}}>{muted?"🔇 OFF":"🔊 ON"}</button>
           <span style={{fontSize:14}}>{gov?.e}</span>
           <div><div style={{fontSize:11,fontWeight:700,color:gov?.c}}>{nN}</div><div style={{fontSize:7,opacity:.25}}>{period} · {tier.e}{tier.n} · {relKey&&RELIGIONS[relKey]?RELIGIONS[relKey].e:""} · 🏆{fmt(score)} · DOW:{fmt(dow)} · {simStats.approval}%👍</div></div>
         </div>
@@ -911,9 +913,13 @@ function TWC(){
           {/* EMERGENCY PHONE */}
           <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
             <div onClick={answerPhone} style={{cursor:pendingCrisis?"pointer":"default",position:"relative",textAlign:"center",transition:"all .2s"}}>
-              <img src="phone.png" alt="Emergency Phone" style={{width:pendingCrisis?70:50,height:pendingCrisis?70:50,objectFit:"contain",filter:pendingCrisis?"drop-shadow(0 0 15px rgba(239,68,68,.8))":"grayscale(0.5) brightness(0.6)",animation:phoneRinging?"phoneBuzz .4s infinite":"none",transition:"all .3s"}}/>
+              <img src="phone.png" alt="Emergency Phone" style={{width:pendingCrisis?70:50,height:pendingCrisis?70:50,objectFit:"contain",filter:pendingCrisis?"drop-shadow(0 0 15px rgba(239,68,68,.8))":"grayscale(0.5) brightness(0.6)",animation:phoneRinging&&!phoneSilenced?"phoneBuzz .4s infinite":"none",transition:"all .3s"}}/>
               {pendingCrisis&&<div style={{position:"absolute",top:-6,right:-6,background:"#EF4444",color:"#fff",fontSize:8,fontWeight:800,borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",animation:"phoneGlow 1s infinite"}}>!</div>}
               <div style={{fontSize:7,opacity:pendingCrisis?.9:.3,color:pendingCrisis?"#EF4444":"#d1d5db",marginTop:2,fontWeight:pendingCrisis?700:400}}>{pendingCrisis?"☎️ INCOMING CRISIS!":"☎️ Hotline quiet"}</div>
+              {pendingCrisis&&<div style={{display:"flex",gap:6,justifyContent:"center",marginTop:4,flexWrap:"wrap"}}>
+                <button onClick={answerPhone} style={{padding:"8px 18px",fontSize:11,fontWeight:700,borderRadius:8,border:"2px solid #EF4444",background:"rgba(239,68,68,.2)",color:"#EF4444",cursor:"pointer",fontFamily:"inherit",animation:!phoneSilenced?"phoneGlow 1s infinite":"none"}}>📞 ANSWER</button>
+                <button onClick={()=>{setPhoneSilenced(s=>{const next=!s;if(next&&phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}return next})}} style={{padding:"8px 14px",fontSize:11,fontWeight:700,borderRadius:8,border:"1px solid rgba(255,255,255,.15)",background:phoneSilenced?"rgba(110,231,183,.1)":"rgba(239,68,68,.1)",color:phoneSilenced?"#6EE7B7":"#F59E0B",cursor:"pointer",fontFamily:"inherit"}}>{phoneSilenced?"🔔 Unsilence":"🔕 Silence"}</button>
+              </div>}
             </div>
           </div>
 

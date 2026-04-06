@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TWC: Teacher Dashboard</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0a0f1a; color:#d1d5db; font-family:'Segoe UI',sans-serif; padding:16px; }
+  h1 { text-align:center; font-size:22px; color:#FFD700; margin-bottom:4px; }
+  .sub { text-align:center; font-size:12px; opacity:.4; margin-bottom:16px; }
+  .tabs { display:flex; justify-content:center; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .tab { padding:8px 20px; border-radius:8px; cursor:pointer; font-weight:700; font-size:13px; border:none; font-family:inherit; transition:all .2s; }
+  .tab.active { color:#000; }
+  .tab:not(.active) { background:rgba(255,255,255,.06); color:rgba(255,255,255,.4); }
+  .tab[data-p="1st"] { --c:#EF4444; } .tab[data-p="2nd"] { --c:#10B981; }
+  .tab[data-p="5th"] { --c:#F59E0B; } .tab[data-p="6th"] { --c:#3B82F6; }
+  .tab[data-p="all"] { --c:#A855F7; }
+  .tab.active { background:var(--c); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:12px; }
+  .card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .card-name { font-size:15px; font-weight:700; }
+  .card-period { font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; }
+  .card-period[data-p="1st"] { background:rgba(239,68,68,.15); color:#EF4444; }
+  .card-period[data-p="2nd"] { background:rgba(16,185,129,.15); color:#10B981; }
+  .card-period[data-p="5th"] { background:rgba(245,158,11,.15); color:#F59E0B; }
+  .card-period[data-p="6th"] { background:rgba(59,130,246,.15); color:#3B82F6; }
+  .stat-row { display:flex; justify-content:space-between; font-size:11px; padding:2px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+  .stat-label { opacity:.5; }
+  .stat-val { font-weight:700; }
+  .bar { height:5px; background:rgba(255,255,255,.08); border-radius:3px; margin-top:2px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:3px; transition:width .3s; }
+  .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+  .sum-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:10px; text-align:center; }
+  .sum-num { font-size:24px; font-weight:800; }
+  .sum-label { font-size:10px; opacity:.4; }
+  .refresh { padding:8px 20px; border-radius:8px; border:none; background:#FFD700; color:#000; font-weight:700; cursor:pointer; font-family:inherit; font-size:13px; }
+  .loading { text-align:center; padding:40px; opacity:.3; }
+  .inv-tag { display:inline-block; font-size:9px; padding:1px 5px; border-radius:3px; margin:1px; background:rgba(255,215,0,.1); color:#FFD700; border:1px solid rgba(255,215,0,.15); }
+  table { width:100%; border-collapse:collapse; font-size:11px; }
+  th { text-align:left; padding:6px 8px; background:rgba(255,255,255,.06); color:#FFD700; font-size:10px; }
+  td { padding:5px 8px; border-bottom:1px solid rgba(255,255,255,.04); }
+  tr:hover td { background:rgba(255,255,255,.03); }
+</style>
+</head>
+<body>
+<h1>🏛️ TWC: Teacher Dashboard</h1>
+<div class="sub">Total World Conquest: The Modern Empire — Class Overview</div>
+
+<div style="text-align:center;margin-bottom:16px">
+  <button class="refresh" onclick="loadData()">🔄 Refresh Data</button>
+  <button class="refresh" style="background:#3B82F6;color:#fff;margin-left:6px" onclick="toggleView()">📊 Toggle View</button>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="summary" id="summary"></div>
+<div id="content"></div>
+
+<div style="text-align:center;margin-top:20px;font-size:9px;opacity:.15">
+  TWC: The Modern Empire · © 2026 Jason Slaughter · PixelED Path, LLC
+</div>
+
+<script>
+const FB="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
+const fbV=f=>f?Object.values(f)[0]:"";
+let allData=[];
+let currentPeriod="all";
+let viewMode="cards"; // cards or table
+
+async function loadData(){
+  document.getElementById("content").innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const r=await fetch(FB+"?pageSize=200");
+    if(!r.ok){document.getElementById("content").innerHTML='<div class="loading">Error loading. Check Firebase rules.</div>';return}
+    const d=await r.json();
+    allData=(d.documents||[]).map(x=>{
+      const f=x.fields||{};
+      return{
+        name:fbV(f.name)||"?",
+        nation:fbV(f.nation)||"?",
+        gov:fbV(f.gov)||"?",
+        score:Number(fbV(f.score))||0,
+        tier:fbV(f.tier)||"?",
+        ach:Number(fbV(f.ach))||0,
+        period:fbV(f.period)||"?",
+        twc:Number(fbV(f.twc))||0,
+        grapes:Number(fbV(f.grapes))||0,
+        inv:fbV(f.inv)||"{}",
+      };
+    });
+    allData.sort((a,b)=>b.score-a.score);
+    renderTabs();
+    renderSummary();
+    render();
+  }catch(e){
+    document.getElementById("content").innerHTML='<div class="loading">Network error: '+e.message+'</div>';
+  }
+}
+
+function renderTabs(){
+  const periods=["all","1st","2nd","5th","6th"];
+  document.getElementById("tabs").innerHTML=periods.map(p=>
+    `<button class="tab ${currentPeriod===p?'active':''}" data-p="${p}" onclick="filterPeriod('${p}')">${p==="all"?"All Classes":p+" Hour"} (${p==="all"?allData.length:allData.filter(d=>d.period===p).length})</button>`
+  ).join("");
+}
+
+function filterPeriod(p){
+  currentPeriod=p;
+  renderTabs();
+  renderSummary();
+  render();
+}
+
+function toggleView(){
+  viewMode=viewMode==="cards"?"table":"cards";
+  render();
+}
+
+function getFiltered(){
+  return currentPeriod==="all"?allData:allData.filter(d=>d.period===currentPeriod);
+}
+
+function renderSummary(){
+  const data=getFiltered();
+  if(!data.length){document.getElementById("summary").innerHTML="";return}
+  const avgScore=Math.round(data.reduce((s,d)=>s+d.score,0)/data.length);
+  const avgGrapes=Math.round(data.reduce((s,d)=>s+d.grapes,0)/data.length);
+  const totalTWC=data.reduce((s,d)=>s+d.twc,0);
+  const topPlayer=data[0];
+  
+  const govCounts={};
+  data.forEach(d=>{govCounts[d.gov]=(govCounts[d.gov]||0)+1});
+  const topGov=Object.entries(govCounts).sort((a,b)=>b[1]-a[1])[0];
+  
+  document.getElementById("summary").innerHTML=`
+    <div class="sum-card"><div class="sum-num" style="color:#3B82F6">${data.length}</div><div class="sum-label">Students</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#FFD700">${avgScore.toLocaleString()}</div><div class="sum-label">Avg Score</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#10B981">${avgGrapes}/100</div><div class="sum-label">Avg GRAPES</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#F59E0B">$${totalTWC.toLocaleString()}</div><div class="sum-label">Total TWC$</div></div>
+  `;
+}
+
+function parseInv(invStr){
+  try{const inv=JSON.parse(invStr);return Object.entries(inv).filter(([k,v])=>v>0).map(([k,v])=>`<span class="inv-tag">${k}×${v}</span>`).join(" ")||"—";}catch{return"—";}
+}
+
+function render(){
+  const data=getFiltered();
+  if(!data.length){document.getElementById("content").innerHTML='<div class="loading">No data for this period.</div>';return}
+  
+  if(viewMode==="table"){
+    document.getElementById("content").innerHTML=`
+      <table>
+        <thead><tr>
+          <th>#</th><th>Leader</th><th>Nation</th><th>Period</th><th>Gov</th><th>Score</th><th>GRAPES</th><th>TWC$</th><th>Tier</th><th>Ach</th><th>Inventory</th>
+        </tr></thead>
+        <tbody>${data.map((d,i)=>`<tr>
+          <td style="color:#FFD700;font-weight:700">${i+1}</td>
+          <td style="font-weight:700">${d.name}</td>
+          <td>${d.nation}</td>
+          <td><span class="card-period" data-p="${d.period}">${d.period}</span></td>
+          <td>${d.gov}</td>
+          <td style="font-weight:700;color:#FFD700">${d.score.toLocaleString()}</td>
+          <td style="color:${d.grapes>=70?'#6EE7B7':d.grapes>=40?'#F59E0B':'#EF4444'}">${d.grapes}</td>
+          <td>$${d.twc.toLocaleString()}</td>
+          <td>${d.tier}</td>
+          <td>${d.ach}</td>
+          <td>${parseInv(d.inv)}</td>
+        </tr>`).join("")}</tbody>
+      </table>`;
+    return;
+  }
+  
+  document.getElementById("content").innerHTML=`<div class="grid">${data.map((d,i)=>{
+    const inv=parseInv(d.inv);
+    return`<div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-name">${i<3?["🥇","🥈","🥉"][i]:""} ${d.name}</div>
+          <div style="font-size:10px;opacity:.4">${d.nation} · ${d.gov}</div>
+        </div>
+        <span class="card-period" data-p="${d.period}">${d.period}</span>
+      </div>
+      <div class="stat-row"><span class="stat-label">Score</span><span class="stat-val" style="color:#FFD700">${d.score.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-label">GRAPES</span><span class="stat-val" style="color:${d.grapes>=70?'#6EE7B7':d.grapes>=40?'#F59E0B':'#EF4444'}">${d.grapes}/100</span></div>
+      <div class="bar"><div class="bar-fill" style="width:${d.grapes}%;background:${d.grapes>=70?'#6EE7B7':d.grapes>=40?'#F59E0B':'#EF4444'}"></div></div>
+      <div class="stat-row"><span class="stat-label">TWC$</span><span class="stat-val" style="color:#10B981">$${d.twc.toLocaleString()}</span></div>
+      <div class="stat-row"><span class="stat-label">Tier</span><span class="stat-val">${d.tier}</span></div>
+      <div class="stat-row"><span class="stat-label">Achievement Pts</span><span class="stat-val">${d.ach}</span></div>
+      <div style="margin-top:6px;font-size:9px;opacity:.4">Inventory:</div>
+      <div style="margin-top:2px">${inv}</div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+// Auto-load
+loadData();
+// Auto-refresh every 30s
+setInterval(loadData,30000);
+</script>
+</body>
+</html>
