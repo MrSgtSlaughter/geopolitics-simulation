@@ -31,6 +31,13 @@ const SFX={
   quiz_right:()=>{try{const c=getACtx();[523,784].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type="sine";g.gain.value=0.09;o.start(c.currentTime+i*0.1);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+i*0.1+0.2);o.stop(c.currentTime+i*0.1+0.2)})}catch{}},
   quiz_wrong:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=250;o.type="square";g.gain.value=0.06;o.start();o.frequency.linearRampToValueAtTime(150,c.currentTime+0.2);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.25);o.stop(c.currentTime+0.25)}catch{}},
   war_hit:()=>{try{const c=getACtx(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=800+Math.random()*400;o.type="square";g.gain.value=0.07;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.06);o.stop(c.currentTime+0.06)}catch{}},
+  lottery_lose:()=>{try{const c=getACtx();
+    const notes=[293,277,261,246];
+    notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type="sawtooth";g.gain.value=0.08;o.start(c.currentTime+i*0.35);g.gain.setValueAtTime(0.08,c.currentTime+i*0.35);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+i*0.35+(i===3?0.8:0.3));o.stop(c.currentTime+i*0.35+(i===3?0.8:0.3))})}catch{}},
+  lottery_win:()=>{try{const c=getACtx();
+    const notes=[523,659,784,1047,784,1047,1319];
+    notes.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type=i<4?"sine":"triangle";g.gain.value=0.12;o.start(c.currentTime+i*0.12);g.gain.setValueAtTime(0.12,c.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.01,c.currentTime+i*0.12+0.4);o.stop(c.currentTime+i*0.12+0.4)});
+    setTimeout(()=>{try{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=1568;o.type="sine";g.gain.value=0.15;o.start();g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.8);o.stop(c.currentTime+0.8)}catch{}},900)}catch{}},
   phone_buzz:()=>{try{const c=getACtx();const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=80;o.type="sawtooth";g.gain.value=0.12;o.start();g.gain.setValueAtTime(0.12,c.currentTime);g.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o.stop(c.currentTime+0.15);setTimeout(()=>{try{const o2=c.createOscillator(),g2=c.createGain();o2.connect(g2);g2.connect(c.destination);o2.frequency.value=80;o2.type="sawtooth";g2.gain.value=0.12;o2.start();g2.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o2.stop(c.currentTime+0.15)}catch{}},200);setTimeout(()=>{try{const o3=c.createOscillator(),g3=c.createGain();o3.connect(g3);g3.connect(c.destination);o3.frequency.value=80;o3.type="sawtooth";g3.gain.value=0.12;o3.start();g3.gain.linearRampToValueAtTime(0,c.currentTime+0.15);o3.stop(c.currentTime+0.15)}catch{}},400)}catch{}},
   war_start:()=>{try{const c=getACtx();const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=150;o.type="sawtooth";g.gain.value=0.08;o.start();o.frequency.linearRampToValueAtTime(400,c.currentTime+0.3);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);o.stop(c.currentTime+0.5)}catch{}},
 };
@@ -129,68 +136,116 @@ const RES_HINT={gdp:"Available",oil:"Available",lithium:"Build 3 Oil Refineries"
 // ═══ BUILDINGS (35) ═══
 const BLDS=[
   // TIER 0: Starter
-  {id:"taxOffice",n:"Tax Office",e:"🏛️",d:"Collects taxes. Scales with tax rate.",cost:{gdp:15},prod:{gdp:1},sc:1.19,tier:0,cat:"gov"},
-  {id:"oilRef",n:"Oil Refinery",e:"🛢️",d:"Refines crude. Adds pollution.",cost:{gdp:25},prod:{oil:0.7},sc:1.21,tier:0,cat:"ind",poll:2},
-  {id:"apartment",n:"Apartments",e:"🏢",d:"+50 population capacity",cost:{gdp:20},prod:{},sc:1.12,tier:0,cat:"res",pop:50},
+  {id:"taxOffice",n:"Tax Office",e:"🏛️",d:"Collects taxes. Scales with tax rate.",cost:{gdp:30},prod:{gdp:1},sc:1.19,tier:0,cat:"gov"},
+  {id:"oilRef",n:"Oil Refinery",e:"🛢️",d:"Refines crude. Adds pollution.",cost:{gdp:50},prod:{oil:0.5},sc:1.21,tier:0,cat:"ind",poll:2},
+  {id:"apartment",n:"Apartments",e:"🏢",d:"+50 population capacity",cost:{gdp:40},prod:{},sc:1.12,tier:0,cat:"res",pop:50},
   // TIER 1: 8 buildings
-  {id:"lithMine",n:"Lithium Mine",e:"🔋",d:"Mines lithium. Adds pollution.",cost:{gdp:40,oil:15},prod:{lithium:0.4},sc:1.23,tier:15,cat:"ind",poll:3},
-  {id:"factory",n:"Factory",e:"🏭",d:"Mass production. Heavy pollution.",cost:{gdp:50,oil:20},prod:{gdp:1.8,oil:0.2},sc:1.28,tier:15,cat:"ind",poll:5},
-  {id:"elementary",n:"Elementary School",e:"🏫",d:"Educates young citizens. Reduces crime.",cost:{gdp:35},prod:{education:0.15},sc:1.23,tier:15,cat:"edu",crime:-1},
-  {id:"policeStation",n:"Police Station",e:"👮",d:"Reduces crime significantly.",cost:{gdp:40},prod:{},sc:1.21,tier:15,cat:"gov",crime:-5},
-  {id:"fireStation",n:"Fire Station",e:"🚒",d:"Reduces disaster damage.",cost:{gdp:35},prod:{},sc:1.23,tier:15,cat:"gov"},
+  {id:"lithMine",n:"Lithium Mine",e:"🔋",d:"Mines lithium. Adds pollution.",cost:{gdp:120,oil:40},prod:{lithium:0.3},sc:1.23,tier:15,cat:"ind",poll:3},
+  {id:"factory",n:"Factory",e:"🏭",d:"Mass production. Heavy pollution.",cost:{gdp:150,oil:50},prod:{gdp:1.2,oil:0.15},sc:1.28,tier:15,cat:"ind",poll:5},
+  {id:"elementary",n:"Elementary School",e:"🏫",d:"Educates young citizens. Reduces crime.",cost:{gdp:100},prod:{education:0.15},sc:1.23,tier:15,cat:"edu",crime:-1},
+  {id:"policeStation",n:"Police Station",e:"👮",d:"Reduces crime significantly.",cost:{gdp:120},prod:{},sc:1.21,tier:15,cat:"gov",crime:-5},
+  {id:"fireStation",n:"Fire Station",e:"🚒",d:"Reduces disaster damage.",cost:{gdp:100},prod:{},sc:1.23,tier:15,cat:"gov"},
   // TIER 2: 18 buildings
-  {id:"suburb",n:"Suburbs",e:"🏠",d:"+120 pop. Adds traffic.",cost:{gdp:60,oil:10},prod:{},sc:1.19,tier:35,cat:"res",pop:120,traff:3},
-  {id:"shops",n:"Shopping Center",e:"🛍️",d:"Commercial revenue. Creates jobs.",cost:{gdp:55},prod:{gdp:3},sc:1.21,tier:35,cat:"com"},
-  {id:"middleSchool",n:"Middle School",e:"📚",d:"Intermediate education.",cost:{gdp:50,education:5},prod:{education:0.2},sc:1.21,tier:35,cat:"edu",crime:-1},
-  {id:"clinic",n:"Health Clinic",e:"⛑️",d:"Basic healthcare.",cost:{gdp:45},prod:{healthcare:0.5},sc:1.19,tier:35,cat:"med"},
-  {id:"waterPlant",n:"Water Treatment",e:"💧",d:"Required for population growth.",cost:{gdp:60,oil:10},prod:{},sc:1.23,tier:35,cat:"util"},
-  {id:"powerPlant",n:"Power Plant",e:"⚡",d:"Powers buildings. Pollution.",cost:{gdp:70,oil:20},prod:{},sc:1.26,tier:35,cat:"util",poll:4},
-  {id:"highway",n:"Highway System",e:"🛣️",d:"Reduces traffic problems.",cost:{gdp:80},prod:{},sc:1.26,tier:35,cat:"infra",traff:-10},
+  {id:"suburb",n:"Suburbs",e:"🏠",d:"+120 pop. Adds traffic.",cost:{gdp:200,oil:40},prod:{},sc:1.19,tier:35,cat:"res",pop:120,traff:3},
+  {id:"shops",n:"Shopping Center",e:"🛍️",d:"Commercial revenue. Creates jobs.",cost:{gdp:180},prod:{gdp:2},sc:1.21,tier:35,cat:"com"},
+  {id:"middleSchool",n:"Middle School",e:"📚",d:"Intermediate education.",cost:{gdp:160,education:15},prod:{education:0.2},sc:1.21,tier:35,cat:"edu",crime:-1},
+  {id:"clinic",n:"Health Clinic",e:"⛑️",d:"Basic healthcare.",cost:{gdp:150},prod:{healthcare:0.5},sc:1.19,tier:35,cat:"med"},
+  {id:"waterPlant",n:"Water Treatment",e:"💧",d:"Required for population growth.",cost:{gdp:200,oil:35},prod:{},sc:1.23,tier:35,cat:"util"},
+  {id:"powerPlant",n:"Power Plant",e:"⚡",d:"Powers buildings. Pollution.",cost:{gdp:250,oil:60},prod:{},sc:1.26,tier:35,cat:"util",poll:4},
+  {id:"highway",n:"Highway System",e:"🛣️",d:"Reduces traffic problems.",cost:{gdp:300},prod:{},sc:1.26,tier:35,cat:"infra",traff:-10},
   // TIER 3: 30 buildings
-  {id:"techCampus",n:"Tech Campus",e:"💻",d:"R&D innovation labs.",cost:{gdp:100,lithium:15},prod:{technology:0.5},sc:1.26,tier:60,cat:"ind"},
-  {id:"highSchool",n:"High School",e:"🎓",d:"Advanced education. Reduces crime.",cost:{gdp:70,education:10},prod:{education:0.25},sc:1.28,tier:60,cat:"edu",crime:-2},
-  {id:"hospital",n:"Hospital",e:"🏥",d:"Full healthcare services.",cost:{gdp:90,education:15},prod:{healthcare:0.8},sc:1.23,tier:60,cat:"med"},
-  {id:"milBase",n:"Military Base",e:"🏰",d:"Projects power.",cost:{gdp:100,oil:25},prod:{defense:0.5},sc:1.26,tier:60,cat:"mil"},
-  {id:"tradePort",n:"Trade Port",e:"🚢",d:"Import/export hub.",cost:{gdp:100,diplomacy:8},prod:{gdp:3,diplomacy:0.2},sc:1.26,tier:60,cat:"com"},
-  {id:"nationalPark",n:"National Park",e:"🏞️",d:"Reduces pollution. Boosts happiness.",cost:{gdp:80},prod:{},sc:1.19,tier:60,cat:"civic",poll:-8,happy:5},
-  {id:"mall",n:"Mega Mall",e:"🏬",d:"Massive commercial revenue.",cost:{gdp:120},prod:{gdp:5},sc:1.26,tier:60,cat:"com",traff:5},
+  {id:"techCampus",n:"Tech Campus",e:"💻",d:"R&D innovation labs.",cost:{gdp:400,lithium:50},prod:{technology:0.5},sc:1.26,tier:60,cat:"ind"},
+  {id:"highSchool",n:"High School",e:"🎓",d:"Advanced education. Reduces crime.",cost:{gdp:300,education:30},prod:{education:0.25},sc:1.28,tier:60,cat:"edu",crime:-2},
+  {id:"hospital",n:"Hospital",e:"🏥",d:"Full healthcare services.",cost:{gdp:350,education:40},prod:{healthcare:0.8},sc:1.23,tier:60,cat:"med"},
+  {id:"milBase",n:"Military Base",e:"🏰",d:"Projects power.",cost:{gdp:400,oil:80},prod:{defense:0.5},sc:1.26,tier:60,cat:"mil"},
+  {id:"tradePort",n:"Trade Port",e:"🚢",d:"Import/export hub.",cost:{gdp:400,diplomacy:25},prod:{gdp:3,diplomacy:0.2},sc:1.26,tier:60,cat:"com"},
+  {id:"nationalPark",n:"National Park",e:"🏞️",d:"Reduces pollution. Boosts happiness.",cost:{gdp:300},prod:{},sc:1.19,tier:60,cat:"civic",poll:-8,happy:5},
+  {id:"mall",n:"Mega Mall",e:"🏬",d:"Massive commercial revenue.",cost:{gdp:450},prod:{gdp:3.5},sc:1.26,tier:60,cat:"com",traff:5},
   // TIER 4: 50 buildings
-  {id:"university",n:"University",e:"🏫",d:"Higher education & research.",cost:{gdp:150,technology:20},prod:{education:0.3,technology:0.3},sc:1.26,tier:100,cat:"edu"},
-  {id:"embassy",n:"Embassy",e:"🏢",d:"International relationships.",cost:{gdp:140,diplomacy:10},prod:{diplomacy:0.4},sc:1.26,tier:100,cat:"gov"},
-  {id:"stockExch",n:"Stock Exchange",e:"📈",d:"Financial hub. Affects DOW.",cost:{gdp:200,technology:30},prod:{gdp:6},sc:1.32,tier:100,cat:"com"},
-  {id:"solarFarm",n:"Solar Farm",e:"☀️",d:"Clean energy. Reduces pollution.",cost:{gdp:150,lithium:25,technology:15},prod:{lithium:1.2,gdp:1.5},sc:1.26,tier:100,cat:"util",poll:-3},
-  {id:"transit",n:"Mass Transit",e:"🚇",d:"Huge traffic reduction.",cost:{gdp:200,technology:20},prod:{},sc:1.32,tier:100,cat:"infra",traff:-20,happy:3},
-  {id:"newsBureau",n:"News Bureau",e:"📡",d:"Shapes opinion.",cost:{gdp:120,diplomacy:10},prod:{diplomacy:0.6},sc:1.28,tier:100,cat:"gov"},
+  {id:"university",n:"University",e:"🏫",d:"Higher education & research.",cost:{gdp:600,technology:60},prod:{education:0.3,technology:0.3},sc:1.26,tier:100,cat:"edu"},
+  {id:"embassy",n:"Embassy",e:"🏢",d:"International relationships.",cost:{gdp:550,diplomacy:40},prod:{diplomacy:0.4},sc:1.26,tier:100,cat:"gov"},
+  {id:"stockExch",n:"Stock Exchange",e:"📈",d:"Financial hub. Affects DOW.",cost:{gdp:800,technology:80},prod:{gdp:6},sc:1.32,tier:100,cat:"com"},
+  {id:"solarFarm",n:"Solar Farm",e:"☀️",d:"Clean energy. Reduces pollution.",cost:{gdp:600,lithium:80,technology:40},prod:{lithium:1.2,gdp:1.5},sc:1.26,tier:100,cat:"util",poll:-3},
+  {id:"transit",n:"Mass Transit",e:"🚇",d:"Huge traffic reduction.",cost:{gdp:800,technology:60},prod:{},sc:1.32,tier:100,cat:"infra",traff:-20,happy:3},
+  {id:"newsBureau",n:"News Bureau",e:"📡",d:"Shapes opinion.",cost:{gdp:500,diplomacy:35},prod:{diplomacy:0.6},sc:1.28,tier:100,cat:"gov"},
   // TIER 5: 75 buildings
-  {id:"vaccineLab",n:"Vaccine Lab",e:"🧬",d:"Researches cures.",cost:{gdp:250,technology:40,healthcare:20},prod:{healthcare:2.5,technology:0.5},sc:1.32,tier:150,cat:"med"},
-  {id:"cyberCmd",n:"Cyber Command",e:"🖥️",d:"Digital warfare.",cost:{gdp:280,technology:60,defense:25},prod:{defense:1.5,technology:1},sc:1.32,tier:150,cat:"mil"},
-  {id:"nuclearPlant",n:"Nuclear Plant",e:"☢️",d:"Massive power. Some risk.",cost:{gdp:400,technology:80,lithium:40},prod:{gdp:5,oil:2},sc:1.38,tier:150,cat:"util",poll:-2},
-  {id:"luxCondo",n:"Luxury Condos",e:"🏙️",d:"+200 pop. High GDP.",cost:{gdp:300,technology:20},prod:{gdp:4},sc:1.28,tier:150,cat:"res",pop:200,traff:4},
-  {id:"convention",n:"Convention Center",e:"🎪",d:"Tourism & commerce.",cost:{gdp:250,diplomacy:30},prod:{gdp:5,diplomacy:0.5},sc:1.28,tier:150,cat:"com"},
+  {id:"vaccineLab",n:"Vaccine Lab",e:"🧬",d:"Researches cures.",cost:{gdp:1200,technology:120,healthcare:60},prod:{healthcare:2.5,technology:0.5},sc:1.32,tier:150,cat:"med"},
+  {id:"cyberCmd",n:"Cyber Command",e:"🖥️",d:"Digital warfare.",cost:{gdp:1400,technology:180,defense:80},prod:{defense:1.5,technology:1},sc:1.32,tier:150,cat:"mil"},
+  {id:"nuclearPlant",n:"Nuclear Plant",e:"☢️",d:"Massive power. Some risk.",cost:{gdp:2000,technology:250,lithium:120},prod:{gdp:5,oil:2},sc:1.38,tier:150,cat:"util",poll:-2},
+  {id:"luxCondo",n:"Luxury Condos",e:"🏙️",d:"+200 pop. High GDP.",cost:{gdp:1500,technology:80},prod:{gdp:4},sc:1.28,tier:150,cat:"res",pop:200,traff:4},
+  {id:"convention",n:"Convention Center",e:"🎪",d:"Tourism & commerce.",cost:{gdp:1200,diplomacy:100},prod:{gdp:5,diplomacy:0.5},sc:1.28,tier:150,cat:"com"},
   // TIER 6: 100 buildings
-  {id:"spaceProgram",n:"Space Program",e:"🚀",d:"The final frontier.",cost:{gdp:5000,technology:800,education:400,lithium:200},prod:{technology:10,diplomacy:8,education:4,gdp:8},sc:3.0,tier:200,cat:"mil"},
-  {id:"researchLab",n:"Research Lab",e:"🔬",d:"Cutting-edge science.",cost:{gdp:600,technology:150,education:80},prod:{technology:5,education:2},sc:1.5,tier:200,cat:"edu"},
-  {id:"airForce",n:"Air Force Base",e:"✈️",d:"Air superiority.",cost:{gdp:500,defense:60,oil:80},prod:{defense:3},sc:1.38,tier:200,cat:"mil"},
+  {id:"spaceProgram",n:"Space Program",e:"🚀",d:"The final frontier.",cost:{gdp:25000,technology:4000,education:2000,lithium:1000},prod:{technology:10,diplomacy:8,education:4,gdp:8},sc:3.0,tier:200,cat:"mil"},
+  {id:"researchLab",n:"Research Lab",e:"🔬",d:"Cutting-edge science.",cost:{gdp:3000,technology:500,education:250},prod:{technology:5,education:2},sc:1.5,tier:200,cat:"edu"},
+  {id:"airForce",n:"Air Force Base",e:"✈️",d:"Air superiority.",cost:{gdp:2500,defense:200,oil:250},prod:{defense:3},sc:1.38,tier:200,cat:"mil"},
+
+  // ─── MILITARY (Defense) ───
+  {id:"armory",n:"Armory",e:"🗡️",d:"Stores weapons. Boosts defense.",cost:{gdp:80,oil:20},prod:{defense:0.3},sc:1.19,tier:8,cat:"mil"},
+  {id:"navalBase",n:"Naval Base",e:"⚓",d:"Controls the seas.",cost:{gdp:500,oil:100,defense:30},prod:{defense:1.2,diplomacy:0.2},sc:1.26,tier:60,cat:"mil"},
+  {id:"missileSilo",n:"Missile Silo",e:"🎯",d:"Strategic deterrent.",cost:{gdp:1800,defense:120,technology:80},prod:{defense:2.5},sc:1.32,tier:100,cat:"mil"},
+  {id:"pentagon",n:"Dept of Defense",e:"🏛️",d:"Coordinates all military. +10% def.",cost:{gdp:3000,defense:200,technology:100},prod:{defense:4,technology:1},sc:1.5,tier:150,cat:"mil"},
+  {id:"droneFleet",n:"Drone Fleet",e:"🤖",d:"Unmanned warfare.",cost:{gdp:2000,technology:200,defense:100},prod:{defense:3,technology:1.5},sc:1.38,tier:150,cat:"mil"},
+  {id:"coastGuard",n:"Coast Guard",e:"🚤",d:"Protects borders and trade.",cost:{gdp:300,oil:50,defense:20},prod:{defense:0.6,diplomacy:0.15},sc:1.23,tier:35,cat:"mil"},
+  
+  // ─── GOVERNMENT ───
+  {id:"courthouse",n:"Courthouse",e:"⚖️",d:"Rule of law. Reduces crime.",cost:{gdp:150,education:10},prod:{},sc:1.21,tier:15,cat:"gov",crime:-4},
+  {id:"capitol",n:"Capitol Building",e:"🏛️",d:"Seat of government. +approval.",cost:{gdp:800,diplomacy:30},prod:{diplomacy:0.8},sc:1.32,tier:60,cat:"gov",happy:4},
+  {id:"intlAgency",n:"Intelligence Agency",e:"🕵️",d:"Covert ops and security.",cost:{gdp:1000,technology:80,defense:40},prod:{defense:1,technology:0.8},sc:1.3,tier:100,cat:"gov"},
+  {id:"fedReserve",n:"Federal Reserve",e:"🏦",d:"Controls money supply. Stabilizes DOW.",cost:{gdp:1500,technology:60},prod:{gdp:6},sc:1.38,tier:100,cat:"gov"},
+  {id:"cityHall",n:"City Hall",e:"🏢",d:"Local governance. Reduces crime.",cost:{gdp:100},prod:{gdp:0.5},sc:1.18,tier:8,cat:"gov",crime:-2},
+  {id:"postOffice",n:"Post Office",e:"📮",d:"Communication network.",cost:{gdp:60},prod:{gdp:0.3,diplomacy:0.1},sc:1.16,tier:8,cat:"gov"},
+  
+  // ─── PUBLIC WORKS / INFRASTRUCTURE ───
+  {id:"dam",n:"Dam",e:"🌊",d:"Flood control + hydroelectric.",cost:{gdp:500,technology:40},prod:{gdp:2,lithium:0.5},sc:1.28,tier:60,cat:"infra",poll:-2},
+  {id:"bridge",n:"Bridge",e:"🌉",d:"Connects regions. Reduces traffic.",cost:{gdp:400},prod:{gdp:1},sc:1.26,tier:35,cat:"infra",traff:-5},
+  {id:"tunnel",n:"Tunnel",e:"🚇",d:"Underground transit passage.",cost:{gdp:600,technology:30},prod:{},sc:1.28,tier:60,cat:"infra",traff:-8},
+  {id:"sewage",n:"Sewage Plant",e:"🚰",d:"Sanitation. Reduces pollution.",cost:{gdp:200,oil:15},prod:{},sc:1.21,tier:35,cat:"util",poll:-4},
+  {id:"landfill",n:"Recycling Center",e:"♻️",d:"Waste management. Less pollution.",cost:{gdp:180},prod:{gdp:0.3},sc:1.19,tier:35,cat:"util",poll:-5},
+  {id:"expressway",n:"Expressway",e:"🛣️",d:"High-speed multi-lane highway.",cost:{gdp:600,oil:30},prod:{gdp:1.5},sc:1.28,tier:60,cat:"infra",traff:-12},
+  {id:"airport",n:"International Airport",e:"✈️",d:"Global connectivity. Trade + tourism.",cost:{gdp:1200,technology:60,oil:80},prod:{gdp:5,diplomacy:1},sc:1.35,tier:100,cat:"infra",traff:6,poll:3},
+  {id:"trainStation",n:"Train Station",e:"🚂",d:"Regional rail transit.",cost:{gdp:350,technology:20},prod:{gdp:1},sc:1.23,tier:35,cat:"infra",traff:-7},
+  {id:"telecomTower",n:"Telecom Tower",e:"📶",d:"Improves communication.",cost:{gdp:250,technology:30},prod:{technology:0.4,gdp:0.8},sc:1.22,tier:35,cat:"util"},
+  
+  // ─── TOURISM & CULTURE ───
+  {id:"museum",n:"Museum",e:"🏛️",d:"Preserves history. Education + tourism.",cost:{gdp:300,education:20},prod:{education:0.2,gdp:1.5,diplomacy:0.2},sc:1.23,tier:35,cat:"civic",happy:3},
+  {id:"stadium",n:"Stadium",e:"🏟️",d:"Sports and events. Huge revenue.",cost:{gdp:800,oil:30},prod:{gdp:4},sc:1.3,tier:60,cat:"civic",happy:5,traff:8},
+  {id:"themePark",n:"Theme Park",e:"🎢",d:"Entertainment destination.",cost:{gdp:1000,technology:40},prod:{gdp:5,diplomacy:0.3},sc:1.32,tier:100,cat:"civic",happy:6,traff:5,poll:2},
+  {id:"beachResort",n:"Beach Resort",e:"🏖️",d:"Luxury tourism.",cost:{gdp:700,diplomacy:20},prod:{gdp:3.5,diplomacy:0.5},sc:1.28,tier:60,cat:"civic",happy:4},
+  {id:"monument",n:"National Monument",e:"🗽",d:"National pride. Big diplomacy.",cost:{gdp:500},prod:{diplomacy:0.6},sc:1.26,tier:60,cat:"civic",happy:6},
+  {id:"artGallery",n:"Art Gallery",e:"🎨",d:"Cultural enrichment.",cost:{gdp:250,education:15},prod:{education:0.15,diplomacy:0.2},sc:1.21,tier:35,cat:"civic",happy:2},
+  {id:"zoo",n:"Zoo",e:"🦁",d:"Wildlife conservation + tourism.",cost:{gdp:400,healthcare:10},prod:{gdp:2,education:0.1},sc:1.25,tier:60,cat:"civic",happy:4},
+  {id:"library",n:"Public Library",e:"📚",d:"Free knowledge for all.",cost:{gdp:120,education:5},prod:{education:0.15},sc:1.18,tier:15,cat:"edu",crime:-1},
+  
+  // ─── COMMERCIAL ───
+  {id:"bank",n:"Bank",e:"🏦",d:"Financial services. Stores wealth.",cost:{gdp:200},prod:{gdp:2},sc:1.21,tier:35,cat:"com"},
+  {id:"techStartup",n:"Tech Startup",e:"💡",d:"Innovation hub.",cost:{gdp:300,technology:25},prod:{technology:0.6,gdp:1.5},sc:1.23,tier:35,cat:"com"},
+  {id:"warehouse",n:"Warehouse District",e:"📦",d:"Storage and distribution.",cost:{gdp:150,oil:10},prod:{gdp:1},sc:1.19,tier:15,cat:"com"},
+  {id:"restaurant",n:"Restaurant Row",e:"🍽️",d:"Dining and nightlife.",cost:{gdp:120},prod:{gdp:1,healthcare:0.1},sc:1.18,tier:15,cat:"com",happy:1},
+  
+  // ─── RESIDENTIAL ───
+  {id:"publicHousing",n:"Public Housing",e:"🏘️",d:"+80 pop. Affordable.",cost:{gdp:100},prod:{},sc:1.16,tier:15,cat:"res",pop:80},
+  {id:"gatedComm",n:"Gated Community",e:"🏡",d:"+150 pop. Low crime area.",cost:{gdp:500,defense:10},prod:{gdp:1},sc:1.25,tier:60,cat:"res",pop:150,crime:-2},
+  {id:"skyscraper",n:"Skyscraper",e:"🏙️",d:"+300 pop. Dense urban.",cost:{gdp:2000,technology:80},prod:{gdp:3},sc:1.32,tier:150,cat:"res",pop:300,traff:6},
 ];
 
 // ═══ UPGRADES ═══
 const UPGS=[
-  {id:"u1",n:"Fracking",e:"⛽",d:"Oil 2x",cost:{gdp:300,oil:80},eff:{b:"oilRef",m:2},req:{oilRef:5}},
-  {id:"u2",n:"Green Energy",e:"🌱",d:"Lithium 2x",cost:{gdp:400,lithium:60},eff:{b:"lithMine",m:2},req:{lithMine:5}},
-  {id:"u3",n:"AI Research",e:"🤖",d:"Tech 2x",cost:{gdp:500,technology:100},eff:{b:"techCampus",m:2},req:{techCampus:4}},
-  {id:"u4",n:"Free College",e:"🎓",d:"Uni 2x",cost:{gdp:600,education:80},eff:{b:"university",m:2},req:{university:3}},
-  {id:"u5",n:"Nuclear Arsenal",e:"☢️",d:"Military 2x",cost:{gdp:700,defense:100},eff:{b:"milBase",m:2},req:{milBase:5}},
-  {id:"u6",n:"Healthcare Reform",e:"🏥",d:"Hospital 2x",cost:{gdp:500,healthcare:60},eff:{b:"hospital",m:2},req:{hospital:4}},
-  {id:"u7",n:"Alliance Treaty",e:"🤝",d:"Embassy 2x",cost:{gdp:600,diplomacy:60},eff:{b:"embassy",m:2},req:{embassy:3}},
-  {id:"u8",n:"Automation",e:"🤖",d:"Factory 2x",cost:{gdp:600,technology:80},eff:{b:"factory",m:2},req:{factory:5}},
-  {id:"u9",n:"Deep Drilling",e:"🌊",d:"Oil 3x",cost:{gdp:3000,oil:600},eff:{b:"oilRef",m:3},req:{oilRef:15}},
-  {id:"u10",n:"Quantum AI",e:"⚛️",d:"Tech 3x",cost:{gdp:4000,technology:1000},eff:{b:"techCampus",m:3},req:{techCampus:10}},
-  {id:"u11",n:"Click Power I",e:"📋",d:"Click x2",cost:{gdp:120},eff:{click:2},req:{}},
-  {id:"u12",n:"Click Power II",e:"🚨",d:"Click x4",cost:{gdp:1200,defense:120},eff:{click:4},req:{}},
-  {id:"u13",n:"Click Power III",e:"⚔️",d:"Click x8",cost:{gdp:12000,defense:600},eff:{click:8},req:{}},
-  {id:"u14",n:"Tariff Wall",e:"🧱",d:"Tax 2x",cost:{gdp:800,defense:50},eff:{b:"taxOffice",m:2},req:{tradePort:3}},
-  {id:"u15",n:"Smart Grid",e:"⚡",d:"Power +50%",cost:{gdp:1000,technology:200},eff:{b:"solarFarm",m:2},req:{solarFarm:3}},
-  {id:"u16",n:"Free Trade",e:"🌐",d:"Port 2x",cost:{gdp:1200,diplomacy:150},eff:{b:"tradePort",m:2},req:{tradePort:5}},
+  {id:"u1",n:"Fracking",e:"⛽",d:"Oil 2x",cost:{gdp:800,oil:200},eff:{b:"oilRef",m:2},req:{oilRef:5}},
+  {id:"u2",n:"Green Energy",e:"🌱",d:"Lithium 2x",cost:{gdp:1000,lithium:150},eff:{b:"lithMine",m:2},req:{lithMine:5}},
+  {id:"u3",n:"AI Research",e:"🤖",d:"Tech 2x",cost:{gdp:1500,technology:300},eff:{b:"techCampus",m:2},req:{techCampus:4}},
+  {id:"u4",n:"Free College",e:"🎓",d:"Uni 2x",cost:{gdp:1800,education:200},eff:{b:"university",m:2},req:{university:3}},
+  {id:"u5",n:"Nuclear Arsenal",e:"☢️",d:"Military 2x",cost:{gdp:2000,defense:300},eff:{b:"milBase",m:2},req:{milBase:5}},
+  {id:"u6",n:"Healthcare Reform",e:"🏥",d:"Hospital 2x",cost:{gdp:1500,healthcare:150},eff:{b:"hospital",m:2},req:{hospital:4}},
+  {id:"u7",n:"Alliance Treaty",e:"🤝",d:"Embassy 2x",cost:{gdp:1800,diplomacy:150},eff:{b:"embassy",m:2},req:{embassy:3}},
+  {id:"u8",n:"Automation",e:"🤖",d:"Factory 2x",cost:{gdp:1800,technology:200},eff:{b:"factory",m:2},req:{factory:5}},
+  {id:"u9",n:"Deep Drilling",e:"🌊",d:"Oil 3x",cost:{gdp:8000,oil:1500},eff:{b:"oilRef",m:3},req:{oilRef:15}},
+  {id:"u10",n:"Quantum AI",e:"⚛️",d:"Tech 3x",cost:{gdp:12000,technology:3000},eff:{b:"techCampus",m:3},req:{techCampus:10}},
+  {id:"u11",n:"Click Power I",e:"📋",d:"Click x2",cost:{gdp:250},eff:{click:2},req:{}},
+  {id:"u12",n:"Click Power II",e:"🚨",d:"Click x4",cost:{gdp:3000,defense:400},eff:{click:4},req:{}},
+  {id:"u13",n:"Click Power III",e:"⚔️",d:"Click x8",cost:{gdp:30000,defense:2000},eff:{click:8},req:{}},
+  {id:"u14",n:"Tariff Wall",e:"🧱",d:"Tax 2x",cost:{gdp:2000,defense:150},eff:{b:"taxOffice",m:2},req:{tradePort:3}},
+  {id:"u15",n:"Smart Grid",e:"⚡",d:"Power +50%",cost:{gdp:3000,technology:500},eff:{b:"solarFarm",m:2},req:{solarFarm:3}},
+  {id:"u16",n:"Free Trade",e:"🌐",d:"Port 2x",cost:{gdp:3500,diplomacy:400},eff:{b:"tradePort",m:2},req:{tradePort:5}},
 ];
 
 // ═══ QUIZ (75 questions) ═══
@@ -428,9 +483,9 @@ const ACHS=[
 
 function TWC(){
   const[screen,setScreen]=useState("title");const[relKey,setRelKey]=useState(null);const[period,setPeriod]=useState(null);
-  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
+  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[lotteryWin,setLotteryWin]=useState(null);const[lotteryLose,setLotteryLose]=useState(false);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
   const[gk,setGk]=useState(null);const[nN,setNN]=useState("");const[lN,setLN]=useState("");
-  const[res,setRes]=useState({gdp:50,oil:20,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
+  const[res,setRes]=useState({gdp:80,oil:30,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
   const[blds,setBlds]=useState({});const[upgs,setUpgs]=useState([]);const[tab,setTab]=useState("gather");
   const[log,setLog]=useState([]);const[ticker,setTicker]=useState([]);
   const[totE,setTotE]=useState(0);const[totC,setTotC]=useState(0);const[decs,setDecs]=useState(0);const[elapsed,setElapsed]=useState(0);
@@ -443,7 +498,7 @@ function TWC(){
   const[warRes,setWarRes]=useState(null);const[warsWon,setWarsWon]=useState(0);
   const[lbD,setLbD]=useState([]);const[lbL,setLbL]=useState(false);const[subMsg,setSubMsg]=useState("");
   const[achU,setAchU]=useState([]);const[achToast,setAchToast]=useState(null);
-  const[particles,setParticles]=useState([]);const pid=useRef(0);const tickRef=useRef(0);
+  const[particles,setParticles]=useState([]);const pid=useRef(0);const tickRef=useRef(0);const clickTimes=useRef([]);
   // SIM STATS
   const[taxRate,setTaxRate]=useState(15);const[dow,setDow]=useState(10000);
   // War mini-game
@@ -459,7 +514,14 @@ function TWC(){
     const utilNeed=Math.floor(tb/8)+1;const utilOk=util>=utilNeed;
     happy=clamp(happy+(taxRate<10?5:taxRate>25?-10:taxRate>20?-5:0)+(crime>50?-15:crime<20?5:0)+(poll>60?-10:poll<20?5:0)+(traff>60?-10:0)+(utilOk?5:-15),5,100);
     const approval=clamp(Math.floor(happy+(qCorr*0.3)-(crime*0.3)-(poll*0.2)),5,100);
-    return{pop,crime,poll,traff,happy,approval,util,utilNeed,utilOk,tb};
+    // GRAPES dynamic scores (0-100)
+    const gGov=clamp(Math.floor(approval*0.4+(upgs.length*3)+((blds.embassy||0)*3)+((blds.newsBureau||0)*2)+(decs*0.5)),0,100);
+    const gRel=relKey?clamp(Math.floor(30+((blds.elementary||0)+(blds.middleSchool||0)+(blds.highSchool||0)+(blds.university||0))*3+(qCorr*0.3)+(happy*0.2)),0,100):0;
+    const gAch=clamp(Math.floor((achU.length/ACHS.length)*100),0,100);
+    const gPub=clamp(Math.floor(tb*0.5+(util*5)+(blds.highway||0)*3+(blds.transit||0)*4+(blds.nationalPark||0)*5+(blds.waterPlant||0)*3-(poll*0.3)-(traff*0.2)),0,100);
+    const gEco=clamp(Math.floor((dow/500)+(taxRate>10&&taxRate<30?10:0)+((blds.stockExch||0)*5)+((blds.tradePort||0)*4)+((blds.factory||0)*2)-(crime*0.2)),0,100);
+    const gSoc=clamp(Math.floor(happy*0.5+(100-crime)*0.2+((blds.hospital||0)+(blds.clinic||0))*3+((blds.policeStation||0))*2+(qCorr*0.2)-(poll*0.15)),0,100);
+    return{pop,crime,poll,traff,happy,approval,util,utilNeed,utilOk,tb,gGov,gRel,gAch,gPub,gEco,gSoc};
   },[blds,taxRate,qCorr]);
 
   const getClick=useCallback(()=>{let b=1;UPGS.forEach(u=>{if(upgs.includes(u.id)&&u.eff.click)b=Math.max(b,u.eff.click)});return b},[upgs]);
@@ -472,7 +534,8 @@ function TWC(){
   const getTier=useCallback(()=>{let t=TIERS[0];TIERS.forEach(x=>{if(totE>=x.t)t=x});return t},[totE]);
   const ps=useMemo(()=>getPS(),[getPS]);const tier=useMemo(()=>getTier(),[getTier]);
   const achPts=useMemo(()=>achU.reduce((s,id)=>{const a=ACHS.find(x=>x.id===id);return s+(a?a.pts:0)},0),[achU]);
-  const score=useMemo(()=>achPts+Math.floor(totE/100)+qCorr*10+decs*20,[achPts,totE,qCorr,decs]);
+  const grapesAvg=useMemo(()=>Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6),[simStats]);
+  const score=useMemo(()=>achPts+Math.floor(totE/100)+qCorr*10+decs*20+grapesAvg*5,[achPts,totE,qCorr,decs,grapesAvg]);
   const totalBlds=simStats.tb;
 
   const checkAch=useCallback(id=>{if(achU.includes(id))return;if(!muted)SFX.achieve();setAchU(p=>[...p,id]);const a=ACHS.find(x=>x.id===id);if(a){setAchToast(a);setTimeout(()=>setAchToast(null),3500);setLog(l=>[`🏆 ${a.e} ${a.n} (+${a.pts})`,...l].slice(0,60))}},[achU]);
@@ -513,8 +576,17 @@ function TWC(){
     if(screen!=="game")return;
     const checkLottery=()=>{
       try{
-        const last=localStorage.getItem("twc_lottery_"+nN);
-        if(last){const diff=Date.now()-Number(last);const remaining=86400000-diff;if(remaining>0){setLotteryTimer(Math.ceil(remaining/1000))}else{setLotteryTimer(0)}}
+        const raw=localStorage.getItem("twc_lottery_"+nN);
+        if(raw){
+          const data=JSON.parse(raw);
+          const ts=data.t||Number(raw);
+          const expectedHash=mkHash(String(ts)+"twc_salt_2026");
+          if(data.h&&data.h!==expectedHash){setLotteryTimer(86400);return}
+          const diff=Date.now()-ts;
+          const remaining=86400000-diff;
+          if(remaining>0){setLotteryTimer(Math.ceil(remaining/1000))}
+          else{setLotteryTimer(0)}
+        }
       }catch{setLotteryTimer(0)}
     };
     checkLottery();
@@ -572,11 +644,14 @@ function TWC(){
     setCrisis(pendingCrisis);
     setPendingCrisis(null);
   };
+  const mkHash=(s)=>{let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return Math.abs(h).toString(36)};
   const exportSave=()=>{
     try{
       const state={v:2,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon};
       const json=JSON.stringify(state);
-      const b64=btoa(unescape(encodeURIComponent(json)));
+      const hash=mkHash(json);
+      const payload=JSON.stringify({d:json,h:hash});
+      const b64=btoa(unescape(encodeURIComponent(payload)));
       setSaveCode(b64);
       setSaveMsg("✅ Save code generated! Copy it below.");
       if(!muted)SFX.achieve();
@@ -584,15 +659,23 @@ function TWC(){
   };
   const importSave=(code)=>{
     try{
-      const json=decodeURIComponent(escape(atob(code.trim())));
-      const s=JSON.parse(json);
+      const raw=decodeURIComponent(escape(atob(code.trim())));
+      let s;
+      try{
+        const wrapper=JSON.parse(raw);
+        if(wrapper.d&&wrapper.h){
+          const check=mkHash(wrapper.d);
+          if(check!==wrapper.h){setSaveMsg("❌ Save tampered with! Nice try. 🚨");return}
+          s=JSON.parse(wrapper.d);
+        }else{s=JSON.parse(raw)}
+      }catch{s=JSON.parse(raw)}
       if(!s.v||!s.gk||!s.nN){setSaveMsg("❌ Invalid save code");return}
       setNN(s.nN||"");setLN(s.lN||"");setGk(s.gk);setRelKey(s.relKey||null);setPeriod(s.period||null);
-      setRes(s.res||{gdp:50,oil:20,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
+      (()=>{const r=s.res||{gdp:80,oil:30,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0};const cap=10000000;Object.keys(r).forEach(k=>{if(r[k]>cap)r[k]=cap});setRes(r)})();
       setBlds(s.blds||{});setUpgs(s.upgs||[]);setAchU(s.achU||[]);
       setTotE(s.totE||0);setTotC(s.totC||0);setDecs(s.decs||0);setElapsed(s.elapsed||0);
       setQCorr(s.qCorr||0);setQTot(s.qTot||0);setBestStrk(s.bestStrk||0);setQStrk(s.qStrk||0);
-      setTwcBucks(s.twcBucks||0);setInventory(s.inventory||{});
+      setTwcBucks(Math.min(s.twcBucks||0,50000));setInventory(s.inventory||{});
       setDow(s.dow||10000);setTaxRate(s.taxRate||15);
       if(s.rels)setRels(s.rels);
       if(s.warsWon)setWarsWon(s.warsWon);
@@ -613,17 +696,22 @@ function TWC(){
     if(lotteryTimer>0)return;
     const roll=Math.random()*100;
     let result;
-    if(roll<1){result={won:true,amount:300,tier:"🎰 JACKPOT",color:"#FFD700"};if(!muted)SFX.achieve()}
-    else if(roll<4){result={won:true,amount:100,tier:"💎 BIG WIN",color:"#A855F7"};if(!muted)SFX.achieve()}
-    else if(roll<14){result={won:true,amount:25,tier:"🎉 WINNER",color:"#10B981"};if(!muted)SFX.quiz_right()}
+    if(roll<1){result={won:true,amount:300,tier:"🎰 JACKPOT",color:"#FFD700"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
+    else if(roll<4){result={won:true,amount:100,tier:"💎 BIG WIN",color:"#A855F7"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
+    else if(roll<14){result={won:true,amount:25,tier:"🎉 WINNER",color:"#10B981"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
     else{result={won:false,amount:0,tier:"❌ NO LUCK",color:"#EF4444"};if(!muted)SFX.quiz_wrong()}
     if(result.won){setTwcBucks(b=>b+result.amount);setLog(l=>[`🎰 Lottery: ${result.tier}! +$${result.amount} TWC$`,...l].slice(0,60))}
-    else{setLog(l=>["🎰 Lottery: Better luck tomorrow!",...l].slice(0,60))}
+    else{if(!muted)SFX.lottery_lose();setLotteryLose(true);setLog(l=>["🎰 Lottery: Better luck tomorrow!",...l].slice(0,60))}
     setLotteryResult(result);
-    try{localStorage.setItem("twc_lottery_"+nN,String(Date.now()))}catch{}
+    try{const ts=Date.now();const lh=mkHash(String(ts)+"twc_salt_2026");localStorage.setItem("twc_lottery_"+nN,JSON.stringify({t:ts,h:lh}))}catch{}
     setLotteryTimer(86400);
   };
-  const doClick=(e,rk)=>{if(!muted)SFX.click();const rb=(relKey&&RELIGIONS[relKey]?.b[rk])||1;const pw=getClick()*(gov?.b[rk]||1)*rb;setRes(p=>({...p,[rk]:(p[rk]||0)+pw}));setTotC(c=>c+1);setTotE(te=>te+pw);const id=pid.current++;setParticles(p=>[...p,{id,x:e.clientX,y:e.clientY,t:`+${fmt(pw)} ${RES[rk].e}`}]);setTimeout(()=>setParticles(p=>p.filter(x=>x.id!==id)),700)};
+  const doClick=(e,rk)=>{
+    const now=Date.now();
+    clickTimes.current.push(now);
+    clickTimes.current=clickTimes.current.filter(t=>now-t<1000);
+    if(clickTimes.current.length>15){return}
+    if(!muted)SFX.click();const rb=(relKey&&RELIGIONS[relKey]?.b[rk])||1;const pw=getClick()*(gov?.b[rk]||1)*rb;setRes(p=>({...p,[rk]:(p[rk]||0)+pw}));setTotC(c=>c+1);setTotE(te=>te+pw);const id=pid.current++;setParticles(p=>[...p,{id,x:e.clientX,y:e.clientY,t:`+${fmt(pw)} ${RES[rk].e}`}]);setTimeout(()=>setParticles(p=>p.filter(x=>x.id!==id)),700)};
   const doBuild=b=>{const cost=bldCost(b);if(!canAff(cost))return;spend(cost);setBlds(p=>({...p,[b.id]:(p[b.id]||0)+1}));if(!muted)SFX.build();setLog(l=>[`🏗️ ${b.e} ${b.n} #${(blds[b.id]||0)+1}`,...l].slice(0,60))};
   const doUpg=u=>{if(upgs.includes(u.id)||!canAff(u.cost))return;for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return;spend(u.cost);setUpgs(p=>[...p,u.id]);setLog(l=>[`⬆️ ${u.e} ${u.n}`,...l].slice(0,60))};
   const meetsReq=u=>{for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return false;return true};
@@ -674,7 +762,7 @@ function TWC(){
   const doSanction=nat=>{if(!canAff({diplomacy:30}))return;spend({diplomacy:30});setRels(p=>({...p,[nat.id]:{...p[nat.id],stance:"hostile",trade:false}}));setRes(p=>({...p,defense:(p.defense||0)+80}));setLog(l=>[`🚫 Sanctioned: ${nat.n}`,...l].slice(0,60))};
 
   const loadLB=async()=>{setLbL(true);setLbD(await fbGet());setLbL(false)};
-  const submitLB=async()=>{setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory)});if(ok===true){setSubMsg("✅ Submitted!");loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
+  const submitLB=async()=>{setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
 
   const S={c:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 10px"},b:(on,col)=>({padding:"5px 10px",borderRadius:7,border:"none",fontWeight:700,fontSize:10,background:on?col:"rgba(255,255,255,0.06)",color:on?"#fff":"rgba(255,255,255,0.2)",cursor:on?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"})};
   const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
@@ -727,7 +815,10 @@ function TWC(){
   return(
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"'Segoe UI',sans-serif",color:"#d1d5db",background:"linear-gradient(160deg,#040810 0%,#0a1525 40%,#0d0a18 70%,#040810 100%)",position:"relative"}}>
       <video autoPlay loop muted playsInline style={{position:"fixed",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.18,pointerEvents:"none",zIndex:0}}><source src="background.mp4" type="video/mp4"/></video>
-      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}@keyframes fire{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}@keyframes phoneBuzz{0%,100%{transform:rotate(0deg)}10%{transform:rotate(-8deg)}20%{transform:rotate(8deg)}30%{transform:rotate(-6deg)}40%{transform:rotate(6deg)}50%{transform:rotate(0deg)}}@keyframes phoneGlow{0%,100%{box-shadow:0 0 10px rgba(239,68,68,.3)}50%{box-shadow:0 0 30px rgba(239,68,68,.7),0 0 60px rgba(239,68,68,.3)}}@keyframes achPop{0%{transform:translateY(15px) scale(.8);opacity:0}50%{transform:translateY(-3px) scale(1.05);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}@keyframes targetPulse{0%{transform:scale(1);opacity:1}100%{transform:scale(0.3);opacity:0}}.gbtn:active{transform:scale(.93)!important}.hov:hover:not(:disabled){filter:brightness(1.15)}*{box-sizing:border-box;scrollbar-width:thin}`}</style>
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes slideIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}@keyframes fire{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}@keyframes phoneBuzz{0%,100%{transform:rotate(0deg)}10%{transform:rotate(-8deg)}20%{transform:rotate(8deg)}30%{transform:rotate(-6deg)}40%{transform:rotate(6deg)}50%{transform:rotate(0deg)}}@keyframes phoneGlow{0%,100%{box-shadow:0 0 10px rgba(239,68,68,.3)}50%{box-shadow:0 0 30px rgba(239,68,68,.7),0 0 60px rgba(239,68,68,.3)}}@keyframes confetti-fall{0%{transform:translateY(-100vh) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes lotteryGlow{0%,100%{box-shadow:0 0 20px rgba(255,215,0,.4)}50%{box-shadow:0 0 50px rgba(255,215,0,.8),0 0 80px rgba(255,215,0,.3)}}
+@keyframes lotteryPulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes achPop{0%{transform:translateY(15px) scale(.8);opacity:0}50%{transform:translateY(-3px) scale(1.05);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}@keyframes targetPulse{0%{transform:scale(1);opacity:1}100%{transform:scale(0.3);opacity:0}}.gbtn:active{transform:scale(.93)!important}.hov:hover:not(:disabled){filter:brightness(1.15)}*{box-sizing:border-box;scrollbar-width:thin}`}</style>
 
       {particles.map(p=><div key={p.id} style={{position:"fixed",left:p.x-25,top:p.y,pointerEvents:"none",zIndex:9999,fontWeight:800,fontSize:13,color:"#FFD700",textShadow:"0 1px 3px #000",animation:"fadeUp .7s ease forwards"}}>{p.t}</div>)}
       {achToast&&<div style={{position:"fixed",top:50,left:"50%",transform:"translateX(-50%)",zIndex:9998,background:"linear-gradient(135deg,#FFD700,#FFA500)",color:"#000",padding:"8px 16px",borderRadius:8,fontWeight:700,fontSize:12,animation:"achPop .5s ease",boxShadow:"0 4px 24px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)",whiteSpace:"nowrap"}}>🏆 {achToast.e} {achToast.n} (+{achToast.pts})</div>}
@@ -746,6 +837,29 @@ function TWC(){
           {warTargets.map(t=><div key={t.id} onClick={()=>hitTarget(t.id)} style={{position:"absolute",left:`${t.x}%`,top:`${t.y}%`,width:36,height:36,borderRadius:"50%",background:"radial-gradient(circle,#EF4444,#7F1D1D)",border:"2px solid #FCA5A5",cursor:"crosshair",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,animation:`targetPulse ${t.life}ms ease forwards`,boxShadow:"0 0 12px rgba(239,68,68,.5)"}}>🎯</div>)}
         </div>
         {warTime===0&&<div style={{marginTop:8,animation:"fadeUp .3s ease"}}><button className="hov" onClick={endWar} style={{padding:"8px 24px",fontSize:13,fontWeight:700,borderRadius:7,border:"none",background:warScore>=Math.floor(warGame.str/8)+3?"#10B981":"#EF4444",color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>{warScore>=Math.floor(warGame.str/8)+3?"🏆 Claim Victory!":"💀 Accept Defeat"}</button></div>}
+      </div>}
+
+      {lotteryLose&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10003,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}>
+        <div style={{textAlign:"center",position:"relative",zIndex:10005,maxWidth:380,width:"100%",animation:"fadeUp .5s ease"}}>
+          <div style={{borderRadius:12,overflow:"hidden",border:"3px solid #EF4444",marginBottom:12,boxShadow:"0 0 30px rgba(239,68,68,.3)"}}>
+            <video autoPlay loop muted playsInline style={{width:"100%",display:"block"}}><source src="loselottery.mp4" type="video/mp4"/></video>
+          </div>
+          <div style={{fontSize:28,fontWeight:900,color:"#EF4444",marginBottom:4}}>NO LUCK!</div>
+          <div style={{fontSize:13,opacity:.5,marginBottom:12}}>Better luck tomorrow...</div>
+          <button className="hov" onClick={()=>setLotteryLose(false)} style={{padding:"10px 30px",fontSize:14,fontWeight:700,borderRadius:8,border:"none",background:"rgba(255,255,255,.1)",color:"#d1d5db",cursor:"pointer",fontFamily:"inherit"}}>Close</button>
+        </div>
+      </div>}
+
+      {lotteryWin&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10003,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}>
+        {Array.from({length:50}).map((_,i)=><div key={i} style={{position:"fixed",left:Math.random()*100+"%",top:"-5%",width:8+Math.random()*8,height:8+Math.random()*8,borderRadius:Math.random()>0.5?"50%":"2px",background:["#FFD700","#EF4444","#3B82F6","#10B981","#A855F7","#F59E0B","#EC4899","#6EE7B7"][i%8],animation:"confetti-fall "+(2+Math.random()*3)+"s linear "+(Math.random()*2)+"s infinite",opacity:0.8,zIndex:10004}}/>)}
+        <div style={{textAlign:"center",animation:"lotteryPulse 1s ease infinite",position:"relative",zIndex:10005,maxWidth:380,width:"100%"}}>
+          <div style={{borderRadius:12,overflow:"hidden",border:"3px solid #FFD700",marginBottom:12,animation:"lotteryGlow 1.5s ease infinite",boxShadow:"0 0 40px rgba(255,215,0,.4)"}}>
+            <video autoPlay loop muted playsInline style={{width:"100%",display:"block"}}><source src="lottery.mp4" type="video/mp4"/></video>
+          </div>
+          <div style={{fontSize:28,fontWeight:900,color:lotteryWin.color,textShadow:"0 0 20px "+lotteryWin.color+"88",marginBottom:4}}>{lotteryWin.tier}!</div>
+          <div style={{fontSize:22,fontWeight:700,color:"#6EE7B7",marginBottom:12}}>+${lotteryWin.amount} TWC$</div>
+          <button className="hov" onClick={()=>setLotteryWin(null)} style={{padding:"10px 30px",fontSize:14,fontWeight:700,borderRadius:8,border:"none",background:"linear-gradient(135deg,#FFD700,#F59E0B)",color:"#000",cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 20px rgba(255,215,0,.4)"}}>Collect Winnings</button>
+        </div>
       </div>}
 
       {warRes&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",animation:"slideIn .3s ease"}}><div style={{textAlign:"center"}}><div style={{fontSize:46}}>{warRes.w?"🏆":"💀"}</div><h2 style={{fontSize:22,fontWeight:900,color:warRes.w?"#FFD700":"#EF4444"}}>{warRes.w?"VICTORY!":"DEFEAT!"}</h2><p style={{opacity:.4}}>vs {warRes.n}</p></div></div>}
@@ -861,16 +975,25 @@ function TWC(){
         </div>}
 
         {tab==="sim"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>NATION SIMULATION · G.R.A.P.E.S.</div>
-          <div style={{display:"flex",justifyContent:"center",gap:3,marginBottom:6,flexWrap:"wrap"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4,marginBottom:8}}>
             {[
-              {l:"Government",e:"🏛️",v:gov?.n,c:"#3B82F6"},
-              {l:"Religion",e:relKey?RELIGIONS[relKey]?.e:"⛪",v:relKey?RELIGIONS[relKey]?.n:"None",c:"#C084FC"},
-              {l:"Achievements",e:"🏆",v:achU.length+"/"+ACHS.length,c:"#FFD700"},
-              {l:"Public Works",e:"🏗️",v:totalBlds+" built",c:"#10B981"},
-              {l:"Economy",e:"💰",v:"DOW "+fmt(dow),c:"#F59E0B"},
-              {l:"Social",e:"👥",v:simStats.approval+"% approval",c:"#6EE7B7"},
-            ].map(g=><div key={g.l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:5,padding:"3px 6px",textAlign:"center",minWidth:50}}><div style={{fontSize:12}}>{g.e}</div><div style={{fontSize:7,fontWeight:700,color:g.c}}>{g.l}</div><div style={{fontSize:7,opacity:.4}}>{g.v}</div></div>)}
+              {l:"Government",e:"🏛️",v:simStats.gGov,sub:gov?.n,c:"#3B82F6"},
+              {l:"Religion",e:relKey?RELIGIONS[relKey]?.e:"⛪",v:simStats.gRel,sub:relKey?RELIGIONS[relKey]?.n:"Banned",c:"#C084FC"},
+              {l:"Achievements",e:"🏆",v:simStats.gAch,sub:achU.length+"/"+ACHS.length,c:"#FFD700"},
+              {l:"Public Works",e:"🏗️",v:simStats.gPub,sub:totalBlds+" built",c:"#10B981"},
+              {l:"Economy",e:"💰",v:simStats.gEco,sub:"DOW "+fmt(dow),c:"#F59E0B"},
+              {l:"Social",e:"👥",v:simStats.gSoc,sub:simStats.approval+"%",c:"#6EE7B7"},
+            ].map(g=><div key={g.l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:6,padding:"5px 6px",textAlign:"center"}}>
+              <div style={{fontSize:14}}>{g.e}</div>
+              <div style={{fontSize:8,fontWeight:700,color:g.c,marginBottom:2}}>{g.l}</div>
+              <div style={{height:6,background:"rgba(255,255,255,.08)",borderRadius:3,overflow:"hidden",marginBottom:2}}>
+                <div style={{height:"100%",width:g.v+"%",background:g.v>=70?g.c:g.v>=40?"#F59E0B":"#EF4444",borderRadius:3,transition:"width .5s ease"}}/>
+              </div>
+              <div style={{fontSize:11,fontWeight:800,color:g.v>=70?"#6EE7B7":g.v>=40?"#F59E0B":"#EF4444"}}>{g.v}</div>
+              <div style={{fontSize:6,opacity:.35}}>{g.sub}</div>
+            </div>)}
           </div>
+          <div style={{textAlign:"center",fontSize:8,opacity:.3,marginBottom:6}}>GRAPES Score: {Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)}/100 — Affected by decisions, taxes, wars, buildings & more</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:8}}>
             <div style={S.c}><div style={{fontSize:8,opacity:.3,marginBottom:2}}>📊 DOW JONES</div><div style={{fontSize:20,fontWeight:800,color:dow>=10000?"#6EE7B7":"#EF4444",textShadow:dow>=10000?"0 0 8px rgba(110,231,183,.3)":"0 0 8px rgba(239,68,68,.3)"}}>{fmt(dow)}</div><div style={{fontSize:7,opacity:.3}}>{dow>=10000?"📈 Bull":"📉 Bear"} Market</div></div>
             <div style={S.c}><div style={{fontSize:8,opacity:.3,marginBottom:2}}>👥 POP & APPROVAL</div><div style={{fontSize:14,fontWeight:700}}>{fmt(simStats.pop)} pop</div><div style={{fontSize:12,fontWeight:700,color:simStats.approval>=60?"#6EE7B7":simStats.approval>=40?"#F59E0B":"#EF4444"}}>{simStats.approval}% approval</div></div>
@@ -936,6 +1059,16 @@ function TWC(){
     </div>
   );
 }
+
+
+// Anti-cheat: warn console users
+(function(){
+  const msg="%c\u{1F6A8} ANTI-CHEAT ACTIVE \u{1F6A8}";
+  const style="color:red;font-size:20px;font-weight:bold;";
+  const msg2="%cModifying game state through the console will flag your account. Play fair.";
+  const style2="color:orange;font-size:12px;";
+  try{console.log(msg,style);console.log(msg2,style2)}catch{}
+})();
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TWC));
 </script>
