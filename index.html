@@ -808,7 +808,7 @@ function TWC(){
         </div>)}</div>
         <button className="sbtn" onClick={()=>{if(!period){alert("Please select your class period!");return}if(!nN.trim())setNN("New Republic");if(!lN.trim())setLN("The Leader");if(!relKey&&gk!=="dictatorship"&&gk!=="totalitarianism")setRelKey("christianity");setScreen("game")}} style={{padding:"10px 32px",fontSize:14,fontWeight:700,cursor:"pointer",background:"linear-gradient(135deg,"+GOV[gk].c+","+GOV[gk].c+"88)",border:"none",borderRadius:8,color:"#fff",fontFamily:"inherit",letterSpacing:2,textTransform:"uppercase",transition:"all .2s",boxShadow:"0 4px 16px "+GOV[gk].c+"44"}}>{GOV[gk].e} Begin</button></div>}
         <div style={{marginTop:12,fontSize:8,opacity:.2}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC: Modern World</a></div>
-        <div style={{marginTop:6,fontSize:7,opacity:.12}}>Copyright © 2026 Jason Slaughter · PixelED Path, LLC</div>
+        <div style={{marginTop:6,fontSize:7,opacity:.12}}>Copyright © 2026 Jason Slaughter · PixelED Path, LLC · <a href="dashboard.html" target="_blank" style={{color:"#F59E0B",textDecoration:"none"}}>📊 Teacher Dashboard</a></div>
       </div>
     </div>
   )}
@@ -1061,7 +1061,7 @@ function TWC(){
         <span style={{fontSize:8,opacity:.2,flexShrink:0}}>│</span>
         {ticker.length>0?<span style={{fontSize:8,color:"#EF4444",flexShrink:0,fontWeight:600}}>⚡ {ticker[0]}</span>:<span style={{fontSize:8,opacity:.35,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>📰 {HEADLINES[newsIdx]}</span>}
       </div>
-      <div style={{textAlign:"center",padding:"2px 0",fontSize:6,opacity:.1,position:"relative",zIndex:1}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC</a> · Copyright © 2026 Jason Slaughter · PixelED Path, LLC</div>
+      <div style={{textAlign:"center",padding:"2px 0",fontSize:6,opacity:.1,position:"relative",zIndex:1}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC</a> · Copyright © 2026 Jason Slaughter · PixelED Path, LLC · <a href="dashboard.html" target="_blank" style={{color:"#F59E0B",textDecoration:"none"}}>📊 Dashboard</a></div>
     </div>
   );
 }
