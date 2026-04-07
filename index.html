@@ -483,7 +483,7 @@ const ACHS=[
 
 function TWC(){
   const[screen,setScreen]=useState("title");const[relKey,setRelKey]=useState(null);const[period,setPeriod]=useState(null);
-  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[lotteryWin,setLotteryWin]=useState(null);const[lotteryLose,setLotteryLose]=useState(false);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
+  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[lotteryWin,setLotteryWin]=useState(null);const[lotteryLose,setLotteryLose]=useState(false);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[contribModal,setContribModal]=useState(false);const[contribItem,setContribItem]=useState(null);const[contribName,setContribName]=useState(()=>{try{return localStorage.getItem('twc_student_name')||''}catch{return''}});const[contribPeriod,setContribPeriod]=useState(()=>{try{return localStorage.getItem('twc_student_period')||''}catch{return''}});const[contribStatus,setContribStatus]=useState('');const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
   const[gk,setGk]=useState(null);const[nN,setNN]=useState("");const[lN,setLN]=useState("");
   const[res,setRes]=useState({gdp:80,oil:30,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
   const[blds,setBlds]=useState({});const[upgs,setUpgs]=useState([]);const[tab,setTab]=useState("gather");
@@ -708,10 +708,35 @@ function TWC(){
   const buyItem=(item)=>{
     if(twcBucks<item.price)return;
     if(!item.stack&&(inventory[item.id]||0)>=1)return;
-    setTwcBucks(b=>b-item.price);
-    setInventory(p=>({...p,[item.id]:(p[item.id]||0)+1}));
-    if(!muted)SFX.build();
-    setTimeout(saveNow,300);setLog(l=>[`🛒 Bought ${item.e} ${item.n} for $${item.price} TWC$`,...l].slice(0,60));
+    // Open contribution modal — student enters name+period before purchase is sent to TWC
+    setContribItem(item);
+    setContribStatus('');
+    setContribModal(true);
+  };
+  const CONTRIB_FB_URL='https://minigolf-fd9ea-default-rtdb.firebaseio.com';
+  const CONTRIB_FB_KEY='AIzaSyB9hsCBMFPC9PFkBL0mV5aK6ioyCkH6DM8';
+  const confirmContrib=async()=>{
+    if(!contribName.trim()){alert('Enter your name first!');return;}
+    if(!contribPeriod){alert('Select your class period!');return;}
+    if(!contribItem)return;
+    try{localStorage.setItem('twc_student_name',contribName.trim())}catch{}
+    try{localStorage.setItem('twc_student_period',contribPeriod)}catch{}
+    setContribStatus('sending');
+    const payload={name:contribName.trim(),period:contribPeriod,unit_id:contribItem.id,unit_name:contribItem.n,emoji:contribItem.e,price:contribItem.price,status:'pending',timestamp:Date.now()};
+    try{
+      const url=`${CONTRIB_FB_URL}/twc_contributions/${contribPeriod}.json?auth=${CONTRIB_FB_KEY}`;
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      setTwcBucks(b=>b-contribItem.price);
+      setInventory(p=>({...p,[contribItem.id]:(p[contribItem.id]||0)+1}));
+      if(!muted)SFX.achieve();
+      setTimeout(saveNow,300);
+      setLog(l=>[`📬 ${contribItem.e} ${contribItem.n} submitted to Mr. Slaughter for ${contribPeriod} ($${contribItem.price} TWC$)!`,...l].slice(0,60));
+      setContribStatus('sent');
+      setTimeout(()=>{setContribModal(false);setContribItem(null);setContribStatus('');},2000);
+    }catch(e){
+      setContribStatus('error');
+    }
   };
   const playLottery=()=>{
     if(lotteryTimer>0)return;
@@ -845,6 +870,50 @@ function TWC(){
       {achToast&&<div style={{position:"fixed",top:50,left:"50%",transform:"translateX(-50%)",zIndex:9998,background:"linear-gradient(135deg,#FFD700,#FFA500)",color:"#000",padding:"8px 16px",borderRadius:8,fontWeight:700,fontSize:12,animation:"achPop .5s ease",boxShadow:"0 4px 24px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)",whiteSpace:"nowrap"}}>🏆 {achToast.e} {achToast.n} (+{achToast.pts})</div>}
 
       {/* CRISIS RESULT */}
+      {contribModal&&contribItem&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10010,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+        <div style={{background:"linear-gradient(160deg,#0d1117,#1a1028)",border:"3px solid #FFD700",borderRadius:10,padding:20,maxWidth:360,width:"100%",fontFamily:"'Segoe UI',sans-serif"}}>
+          <div style={{color:"#FFD700",fontWeight:800,fontSize:15,marginBottom:3}}>📬 CONTRIBUTE TO YOUR EMPIRE</div>
+          <div style={{color:"#666",fontSize:10,marginBottom:12,lineHeight:1.4}}>
+            This sends {contribItem.e} {contribItem.n} to Mr. Slaughter's Total World Conquest. He'll apply it to your class inventory.
+          </div>
+          <div style={{color:"#aaa",fontSize:10,marginBottom:4,textTransform:"uppercase",letterSpacing:1}}>Your Name</div>
+          <input value={contribName} onChange={e=>setContribName(e.target.value)}
+            placeholder="First + Last Name"
+            style={{width:"100%",background:"#fff",color:"#000",border:"2px solid #FFD700",padding:"7px 10px",fontFamily:"inherit",fontSize:13,marginBottom:10,borderRadius:5,outline:"none"}}/>
+          <div style={{color:"#aaa",fontSize:10,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Class Period</div>
+          <div style={{display:"flex",gap:7,marginBottom:12}}>
+            {["1st","2nd","5th","6th"].map(p=>(
+              <button key={p} onClick={()=>setContribPeriod(p)}
+                style={{flex:1,padding:"9px 4px",fontFamily:"inherit",fontWeight:700,fontSize:13,cursor:"pointer",borderRadius:5,
+                  border:"2px solid "+(contribPeriod===p?"#FFD700":"#333"),
+                  background:contribPeriod===p?"#FFD700":"#1a1a1a",
+                  color:contribPeriod===p?"#000":"#777"}}>
+                {p}
+              </button>
+            ))}
+          </div>
+          <div style={{background:"#111",border:"1px solid #333",borderRadius:6,padding:"10px 12px",marginBottom:14}}>
+            <div style={{fontWeight:700,fontSize:13,color:"#FFD700"}}>{contribItem.e} {contribItem.n}</div>
+            <div style={{color:"#888",fontSize:10,marginTop:2}}>{contribItem.d}</div>
+            <div style={{color:"#FFD700",fontWeight:800,fontSize:14,marginTop:6}}>${contribItem.price} TWC$</div>
+            <div style={{color:"#555",fontSize:10,marginTop:2}}>Balance after: ${twcBucks-contribItem.price} TWC$</div>
+          </div>
+          {contribStatus==="sending"&&<div style={{textAlign:"center",color:"#aaa",fontSize:12,marginBottom:10}}>⏳ Submitting to Firebase...</div>}
+          {contribStatus==="sent"&&<div style={{textAlign:"center",color:"#00ff88",fontWeight:700,fontSize:13,marginBottom:10}}>✅ Submitted! Mr. Slaughter will apply it in class.</div>}
+          {contribStatus==="error"&&<div style={{textAlign:"center",color:"#ff4444",fontSize:12,marginBottom:10}}>❌ Failed — check your connection.</div>}
+          {contribStatus!=="sent"&&<div style={{display:"flex",gap:8}}>
+            <button onClick={confirmContrib} disabled={contribStatus==="sending"}
+              style={{flex:2,padding:"10px",background:"#FFD700",color:"#000",border:"none",fontFamily:"inherit",fontWeight:800,fontSize:13,cursor:"pointer",borderRadius:6,opacity:contribStatus==="sending"?0.6:1}}>
+              📬 SUBMIT CONTRIBUTION
+            </button>
+            <button onClick={()=>{setContribModal(false);setContribItem(null);}} disabled={contribStatus==="sending"}
+              style={{flex:1,padding:"10px",background:"#1a1a1a",color:"#777",border:"1px solid #333",fontFamily:"inherit",cursor:"pointer",borderRadius:6}}>
+              CANCEL
+            </button>
+          </div>}
+        </div>
+      </div>}
+
       {crisisResult&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10001,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}><div style={{background:"linear-gradient(160deg,#0d1a2a,#1a1028)",border:"1px solid rgba(255,215,0,.2)",borderRadius:12,padding:16,maxWidth:380,width:"100%",animation:"slideIn .3s ease",textAlign:"center"}}><div style={{fontSize:28,marginBottom:2}}>{crisisResult.emoji}</div><div style={{fontSize:14,fontWeight:800,color:"#FFD700",marginBottom:1}}>{crisisResult.name}</div><div style={{fontSize:10,opacity:.4,marginBottom:10}}>Chose: {crisisResult.choiceEmoji} {crisisResult.choice}</div><div style={{fontSize:10,fontWeight:700,opacity:.3,marginBottom:6}}>CONSEQUENCES</div><div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:12}}>{Object.entries(crisisResult.fx).map(([r,a])=><div key={r} style={{padding:"5px 6px",borderRadius:5,background:a>0?"rgba(16,185,129,.08)":"rgba(239,68,68,.08)",border:`1px solid ${a>0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)"}`}}><div style={{fontSize:14}}>{RES[r]?.e||r}</div><div style={{fontSize:12,fontWeight:700,color:a>0?"#6EE7B7":"#EF4444"}}>{a>0?"+":""}{a}</div><div style={{fontSize:7,opacity:.3}}>{RES[r]?.n||r}</div></div>)}</div><button className="hov" onClick={()=>{setCrisisResult(null);setTab("gather")}} style={{padding:"8px 22px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>✅ Back to Dashboard</button></div></div>}
 
       {/* CRISIS */}
