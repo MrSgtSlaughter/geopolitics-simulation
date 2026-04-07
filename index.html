@@ -496,7 +496,7 @@ function TWC(){
   const qPool=useRef(shuffle(QS));const qIdx=useRef(0);const[qT,setQT]=useState(15);const qTR=useRef(null);
   const[rels,setRels]=useState(()=>{const r={};NATIONS.forEach(n=>{r[n.id]={stance:n.att,trade:false,allied:false,atWar:false}});return r});
   const[warRes,setWarRes]=useState(null);const[warsWon,setWarsWon]=useState(0);
-  const[lbD,setLbD]=useState([]);const[lbL,setLbL]=useState(false);const[subMsg,setSubMsg]=useState("");
+  const[lbD,setLbD]=useState([]);const[lbL,setLbL]=useState(false);const[subMsg,setSubMsg]=useState("");const[submitCooldown,setSubmitCooldown]=useState(0);
   const[achU,setAchU]=useState([]);const[achToast,setAchToast]=useState(null);
   const[particles,setParticles]=useState([]);const pid=useRef(0);const tickRef=useRef(0);const clickTimes=useRef([]);
   // SIM STATS
@@ -504,6 +504,17 @@ function TWC(){
   // War mini-game
   const[warGame,setWarGame]=useState(null);const[warTargets,setWarTargets]=useState([]);const[warScore,setWarScore]=useState(0);const[warTime,setWarTime]=useState(0);const warTimerRef=useRef(null);const warSpawnRef=useRef(null);
   const gov=gk?GOV[gk]:null;
+  const stateRef=useRef(null);
+  useEffect(()=>{
+    stateRef.current={nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon};
+  });
+  const saveNow=useCallback(()=>{
+    if(!stateRef.current||!stateRef.current.nN||!stateRef.current.period)return;
+    try{
+      const json=JSON.stringify({v:2,...stateRef.current});
+      localStorage.setItem("twc_save_"+stateRef.current.nN+"_"+stateRef.current.period,json);
+    }catch{}
+  },[]);
 
   // ─── DERIVED SIM STATS ──────────────────────────────────────
   const simStats=useMemo(()=>{
@@ -593,23 +604,31 @@ function TWC(){
     lotteryCheckRef.current=setInterval(checkLottery,1000);
     return()=>{if(lotteryCheckRef.current)clearInterval(lotteryCheckRef.current)};
   },[screen,nN]);
-  // Auto-save to localStorage every 30s
+  // Auto-save every 10s using ref (always current state)
   useEffect(()=>{
     if(screen!=="game")return;
-    const iv=setInterval(()=>{
-      try{
-        const state={v:2,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon};
-        localStorage.setItem("twc_save_"+nN+"_"+period,JSON.stringify(state));
-      }catch{}
-    },30000);
+    const iv=setInterval(saveNow,10000);
     return()=>clearInterval(iv);
-  },[screen,nN,lN,gk,relKey,period,res,blds,upgs,achU,totE,totC,decs,elapsed,qCorr,qTot,bestStrk,qStrk,twcBucks,inventory,dow,taxRate,rels,warsWon]);
+  },[screen,saveNow]);
+  // Submit cooldown timer
+  useEffect(()=>{
+    if(submitCooldown<=0)return;
+    const iv=setInterval(()=>setSubmitCooldown(t=>t<=1?0:t-1),1000);
+    return()=>clearInterval(iv);
+  },[submitCooldown]);
   // News headline rotation
   useEffect(()=>{
     if(screen!=="game")return;
     const iv=setInterval(()=>setNewsIdx(i=>(i+1)%HEADLINES.length),6000);
     return()=>clearInterval(iv);
   },[screen]);
+  // Save on page close/navigate
+  useEffect(()=>{
+    if(screen!=="game")return;
+    const handleUnload=()=>saveNow();
+    window.addEventListener("beforeunload",handleUnload);
+    return()=>window.removeEventListener("beforeunload",handleUnload);
+  },[screen,saveNow]);
   // DOW ticker
   useEffect(()=>{
     if(screen!=="game")return;
@@ -692,7 +711,7 @@ function TWC(){
     setTwcBucks(b=>b-item.price);
     setInventory(p=>({...p,[item.id]:(p[item.id]||0)+1}));
     if(!muted)SFX.build();
-    setLog(l=>[`🛒 Bought ${item.e} ${item.n} for $${item.price} TWC$`,...l].slice(0,60));
+    setTimeout(saveNow,300);setLog(l=>[`🛒 Bought ${item.e} ${item.n} for $${item.price} TWC$`,...l].slice(0,60));
   };
   const playLottery=()=>{
     if(lotteryTimer>0)return;
@@ -704,7 +723,7 @@ function TWC(){
     else{result={won:false,amount:0,tier:"❌ NO LUCK",color:"#EF4444"};if(!muted)SFX.quiz_wrong()}
     if(result.won){setTwcBucks(b=>b+result.amount);setLog(l=>[`🎰 Lottery: ${result.tier}! +$${result.amount} TWC$`,...l].slice(0,60))}
     else{if(!muted)SFX.lottery_lose();setLotteryLose(true);setLog(l=>["🎰 Lottery: Better luck tomorrow!",...l].slice(0,60))}
-    setLotteryResult(result);
+    setLotteryResult(result);setTimeout(saveNow,500);
     try{const ts=Date.now();const lh=mkHash(String(ts)+"twc_salt_2026");localStorage.setItem("twc_lottery_"+nN,JSON.stringify({t:ts,h:lh}))}catch{}
     setLotteryTimer(86400);
   };
@@ -714,18 +733,18 @@ function TWC(){
     clickTimes.current=clickTimes.current.filter(t=>now-t<1000);
     if(clickTimes.current.length>15){return}
     if(!muted)SFX.click();const rb=(relKey&&RELIGIONS[relKey]?.b[rk])||1;const pw=getClick()*(gov?.b[rk]||1)*rb;setRes(p=>({...p,[rk]:(p[rk]||0)+pw}));setTotC(c=>c+1);setTotE(te=>te+pw);const id=pid.current++;setParticles(p=>[...p,{id,x:e.clientX,y:e.clientY,t:`+${fmt(pw)} ${RES[rk].e}`}]);setTimeout(()=>setParticles(p=>p.filter(x=>x.id!==id)),700)};
-  const doBuild=b=>{const cost=bldCost(b);if(!canAff(cost))return;spend(cost);setBlds(p=>({...p,[b.id]:(p[b.id]||0)+1}));if(!muted)SFX.build();setLog(l=>[`🏗️ ${b.e} ${b.n} #${(blds[b.id]||0)+1}`,...l].slice(0,60))};
-  const doUpg=u=>{if(upgs.includes(u.id)||!canAff(u.cost))return;for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return;spend(u.cost);setUpgs(p=>[...p,u.id]);setLog(l=>[`⬆️ ${u.e} ${u.n}`,...l].slice(0,60))};
+  const doBuild=b=>{const cost=bldCost(b);if(!canAff(cost))return;spend(cost);setBlds(p=>({...p,[b.id]:(p[b.id]||0)+1}));if(!muted)SFX.build();setTimeout(saveNow,300);setLog(l=>[`🏗️ ${b.e} ${b.n} #${(blds[b.id]||0)+1}`,...l].slice(0,60))};
+  const doUpg=u=>{if(upgs.includes(u.id)||!canAff(u.cost))return;for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return;spend(u.cost);setUpgs(p=>[...p,u.id]);setTimeout(saveNow,300);setLog(l=>[`⬆️ ${u.e} ${u.n}`,...l].slice(0,60))};
   const meetsReq=u=>{for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return false;return true};
   const handleCrisis=opt=>{
     setRes(p=>{const n={...p};Object.entries(opt.fx).forEach(([r,a])=>n[r]=Math.max(0,(n[r]||0)+a));return n});
     setDecs(d=>d+1);setLog(l=>[`⚠️ ${crisis.e} ${crisis.n} → ${opt.l}`,...l].slice(0,60));
     setTicker(t=>[`⚠️ ${crisis.n}: ${opt.l}`,...t].slice(0,5));
-    setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx});
+    setTimeout(saveNow,500);setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx});
     setCrisis(null);pendingRef.current=false;if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}setPhoneRinging(false);setPhoneSilenced(false);setDow(d=>Math.max(1000,d+Math.floor((Math.random()-0.5)*500)))};
 
   const startQuiz=()=>{if(qIdx.current>=qPool.current.length){qPool.current=shuffle(QS);qIdx.current=0}const q=qPool.current[qIdx.current];qIdx.current++;setQQ(q);setQO(shuffle([q.a,...q.w]));setQR(null);setQA(true);setQT(15);if(qTR.current)clearInterval(qTR.current);qTR.current=setInterval(()=>{setQT(t=>{if(t<=1){clearInterval(qTR.current);if(!muted)SFX.quiz_wrong();setQR("wrong");setQStrk(0);setQTot(x=>x+1);return 0}return t-1})},1000)};
-  const ansQ=ans=>{if(qR)return;clearInterval(qTR.current);setQTot(x=>x+1);if(ans===qQ.a){const s=qStrk+1;const pts=Math.round(10*Math.min(s,5)*(gov?.b.education||1));if(!muted)SFX.quiz_right();setQR("correct");setQStrk(s);if(s>bestStrk)setBestStrk(s);setQCorr(x=>x+1);setRes(p=>({...p,education:(p.education||0)+pts}));setTotE(te=>te+pts);setLog(l=>[`🎓 +${pts} Edu (${s}🔥)`,...l].slice(0,60))}else{setQR("wrong");setQStrk(0)}};
+  const ansQ=ans=>{if(qR)return;clearInterval(qTR.current);setQTot(x=>x+1);if(ans===qQ.a){const s=qStrk+1;const pts=Math.round(10*Math.min(s,5)*(gov?.b.education||1));if(!muted)SFX.quiz_right();setQR("correct");setQStrk(s);if(s>bestStrk)setBestStrk(s);setQCorr(x=>x+1);setRes(p=>({...p,education:(p.education||0)+pts}));setTotE(te=>te+pts);setTimeout(saveNow,300);setLog(l=>[`🎓 +${pts} Edu (${s}🔥)`,...l].slice(0,60))}else{setQR("wrong");setQStrk(0)}};
 
   // ═══ WAR MINI-GAME ═══
   const startWarGame=(nat)=>{
@@ -750,7 +769,7 @@ function TWC(){
     const threshold=Math.floor(nat.str/8)+3;
     const won=warScore>=threshold;
     setRels(p=>({...p,[nat.id]:{...p[nat.id],atWar:true,trade:false,allied:false,stance:"hostile"}}));
-    if(won){setRes(p=>({...p,gdp:(p.gdp||0)+500,oil:(p.oil||0)+200}));setWarRes({w:true,n:nat.n});setWarsWon(w=>{const nw=w+1;if(nw>=1)checkAch("a20");if(nw>=3)checkAch("a21");if(nw>=5)checkAch("a49");return nw});setLog(l=>[`⚔️ VICTORY: ${nat.n}!`,...l].slice(0,60))}
+    if(won){setRes(p=>({...p,gdp:(p.gdp||0)+500,oil:(p.oil||0)+200}));setWarRes({w:true,n:nat.n});setWarsWon(w=>{const nw=w+1;if(nw>=1)checkAch("a20");if(nw>=3)checkAch("a21");if(nw>=5)checkAch("a49");return nw});setTimeout(saveNow,500);setLog(l=>[`⚔️ VICTORY: ${nat.n}!`,...l].slice(0,60))}
     else{setRes(p=>({...p,gdp:Math.max(0,(p.gdp||0)-300),defense:Math.max(0,(p.defense||0)-200)}));setWarRes({w:false,n:nat.n});setLog(l=>[`⚔️ DEFEAT: ${nat.n}`,...l].slice(0,60))}
     if(warScore>=15)checkAch("a50");
     setDecs(d=>d+1);setWarGame(null);setWarTargets([]);setTimeout(()=>setWarRes(null),3000);
@@ -764,7 +783,7 @@ function TWC(){
   const doSanction=nat=>{if(!canAff({diplomacy:30}))return;spend({diplomacy:30});setRels(p=>({...p,[nat.id]:{...p[nat.id],stance:"hostile",trade:false}}));setRes(p=>({...p,defense:(p.defense||0)+80}));setLog(l=>[`🚫 Sanctioned: ${nat.n}`,...l].slice(0,60))};
 
   const loadLB=async()=>{setLbL(true);setLbD(await fbGet());setLbL(false)};
-  const submitLB=async()=>{setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
+  const submitLB=async()=>{if(submitCooldown>0){setSubMsg("⏱ Wait "+submitCooldown+"s before submitting again");return}setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");setSubmitCooldown(300);loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
 
   const S={c:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 10px"},b:(on,col)=>({padding:"5px 10px",borderRadius:7,border:"none",fontWeight:700,fontSize:10,background:on?col:"rgba(255,255,255,0.06)",color:on?"#fff":"rgba(255,255,255,0.2)",cursor:on?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"})};
   const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
@@ -869,9 +888,9 @@ function TWC(){
       {/* TOP BAR */}
       <div style={{background:"linear-gradient(90deg,rgba(0,0,0,.7),rgba(10,20,35,.6),rgba(0,0,0,.7))",padding:"4px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:2,position:"relative",zIndex:1,borderBottom:"1px solid "+(gov?.c||"#333")+"22"}}>
         <div style={{display:"flex",alignItems:"center",gap:4}}>
-          <button onClick={()=>{if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}pendingRef.current=false;setPhoneRinging(false);setPendingCrisis(null);if(musicRef.current)musicRef.current.pause();setScreen("title")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>←</button><button onClick={()=>{setMuted(m=>!m);if(musicRef.current){if(!muted)musicRef.current.pause();else musicRef.current.play().catch(()=>{})}}} style={{background:muted?"rgba(239,68,68,.15)":"rgba(16,185,129,.15)",border:`1px solid ${muted?"rgba(239,68,68,.3)":"rgba(16,185,129,.3)"}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",color:muted?"#EF4444":"#6EE7B7",fontSize:11,fontFamily:"inherit",fontWeight:700}}>{muted?"🔇 OFF":"🔊 ON"}</button>
+          <button onClick={()=>{if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}pendingRef.current=false;setPhoneRinging(false);setPendingCrisis(null);if(musicRef.current)musicRef.current.pause();setScreen("title")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>←</button><button onClick={()=>{setMuted(m=>!m);if(musicRef.current){if(!muted)musicRef.current.pause();else musicRef.current.play().catch(()=>{})}}} style={{background:muted?"rgba(239,68,68,.15)":"rgba(16,185,129,.15)",border:`1px solid ${muted?"rgba(239,68,68,.3)":"rgba(16,185,129,.3)"}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",color:muted?"#EF4444":"#6EE7B7",fontSize:11,fontFamily:"inherit",fontWeight:700}}>{muted?"🔇 OFF":"🔊 ON"}</button><button onClick={()=>{saveNow();setSaveMsg("✅ Saved!");setTimeout(()=>setSaveMsg(""),2000)}} style={{background:"rgba(16,185,129,.15)",border:"1px solid rgba(16,185,129,.3)",borderRadius:5,padding:"3px 8px",cursor:"pointer",color:"#6EE7B7",fontSize:9,fontFamily:"inherit",fontWeight:700}}>💾 Save</button>
           <span style={{fontSize:14}}>{gov?.e}</span>
-          <div><div style={{fontSize:11,fontWeight:700,color:gov?.c}}>{nN}</div><div style={{fontSize:7,opacity:.25}}>{period} · {tier.e}{tier.n} · {relKey&&RELIGIONS[relKey]?RELIGIONS[relKey].e:""} · 🏆{fmt(score)} · DOW:{fmt(dow)} · {simStats.approval}%👍</div></div>
+          <div><div style={{fontSize:11,fontWeight:700,color:gov?.c}}>{nN}</div><div style={{fontSize:7,opacity:.25}}>{saveMsg||""} {period} · {tier.e}{tier.n} · {relKey&&RELIGIONS[relKey]?RELIGIONS[relKey].e:""} · 🏆{fmt(score)} · DOW:{fmt(dow)} · {simStats.approval}%👍</div></div>
         </div>
       </div>
 
@@ -1045,7 +1064,7 @@ function TWC(){
           <div style={{marginBottom:4}}><div style={{fontSize:8,opacity:.4,marginBottom:2}}>📥 Paste a save code to load:</div><div style={{display:"flex",gap:3}}><input value={loadCode} onChange={e=>setLoadCode(e.target.value)} placeholder="Paste save code here..." style={{flex:1,padding:"5px 8px",fontSize:9,background:"rgba(0,0,0,.3)",border:"1px solid rgba(255,255,255,.1)",borderRadius:4,color:"#d1d5db",fontFamily:"monospace",outline:"none"}}/><button className="hov" onClick={()=>importSave(loadCode)} disabled={!loadCode.trim()} style={{...S.b(!!loadCode.trim(),"#F59E0B"),fontSize:10}}>📥 Load</button></div></div>
           {saveMsg&&<div style={{fontSize:9,textAlign:"center",marginTop:3,color:saveMsg.includes("✅")?"#6EE7B7":saveMsg.includes("⚠️")?"#F59E0B":"#EF4444"}}>{saveMsg}</div>}
         </div>
-        <div style={{...S.c,padding:8,marginBottom:6,textAlign:"center"}}><button className="hov" onClick={submitLB} style={{padding:"5px 16px",fontSize:10,fontWeight:700,borderRadius:6,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>🏆 Submit Score ({fmt(score)}) · TWC${twcBucks}</button>{subMsg&&<div style={{fontSize:8,marginTop:2,color:subMsg.includes("✅")?"#6EE7B7":"#EF4444"}}>{subMsg}</div>}</div>
+        <div style={{...S.c,padding:8,marginBottom:6,textAlign:"center"}}><button className="hov" onClick={submitLB} disabled={submitCooldown>0} style={{padding:"5px 16px",fontSize:10,fontWeight:700,borderRadius:6,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>{submitCooldown>0?"⏱ "+Math.floor(submitCooldown/60)+"m "+submitCooldown%60+"s":"🏆 Submit ("+fmt(score)+")"}</button>{subMsg&&<div style={{fontSize:8,marginTop:2,color:subMsg.includes("✅")?"#6EE7B7":"#EF4444"}}>{subMsg}</div>}</div>
           <div style={S.c}><div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}><span style={{fontSize:8,opacity:.3}}>🏆 LEADERBOARD</span><button onClick={loadLB} style={{fontSize:7,background:"rgba(255,255,255,.05)",border:"none",color:"#d1d5db",borderRadius:3,padding:"1px 5px",cursor:"pointer",fontFamily:"inherit"}}>↻</button></div>{lbL&&<div style={{textAlign:"center",padding:5,opacity:.3,fontSize:8}}>Loading...</div>}{!lbL&&lbD.length===0&&<div style={{textAlign:"center",padding:5,opacity:.15,fontSize:8}}>No scores yet!</div>}{!lbL&&lbD.map((e,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:4,padding:"2px 0",borderBottom:"1px solid rgba(255,255,255,.02)",fontSize:8}}><span style={{width:16,textAlign:"center",fontWeight:700,color:i<3?"#FFD700":"rgba(255,255,255,.25)"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":`#${i+1}`}</span><span style={{flex:1,fontWeight:600}}>{e.name}</span><span style={{fontSize:7,color:"#F59E0B",fontWeight:600,marginRight:3}}>{e.period||""}</span><span style={{opacity:.25,fontSize:7}}>{e.nation}</span><span style={{fontWeight:700,color:"#FFD700"}}>{fmt(e.score)}</span></div>)}</div>
           <div style={{...S.c,marginTop:6}}><div style={{fontSize:8,opacity:.25,marginBottom:2}}>📜 LOG</div><div style={{maxHeight:120,overflow:"auto"}}>{log.map((e,i)=><div key={i} style={{fontSize:7,padding:"1px 0",opacity:Math.max(.15,1-i*.02)}}>{e}</div>)}</div></div>
         </div>}
