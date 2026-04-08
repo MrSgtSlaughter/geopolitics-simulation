@@ -434,13 +434,52 @@ const CR=[
 ];
 
 const PASSIVES=[
-  {n:"Economic Boom",e:"📈",m:"+250 GDP",fx:{gdp:250}},{n:"Oil Discovery",e:"⛽",m:"+200 Oil",fx:{oil:200}},
-  {n:"Tech IPO",e:"💻",m:"+150 GDP +80 Tech",fx:{gdp:150,technology:80}},{n:"Earthquake",e:"🌋",m:"-200 GDP",fx:{gdp:-200,healthcare:-80}},
-  {n:"Nobel Prize",e:"🏆",m:"+150 Edu +100 Diplo",fx:{education:150,diplomacy:100}},{n:"Market Crash",e:"📉",m:"-250 GDP",fx:{gdp:-250}},
-  {n:"World Cup",e:"⚽",m:"+200 Diplo",fx:{diplomacy:200}},{n:"Lithium Find",e:"🔋",m:"+200 Lithium",fx:{lithium:200}},
-  {n:"Brain Drain",e:"✈️",m:"-100 Edu",fx:{education:-100,technology:-80}},{n:"Foreign Aid",e:"🤝",m:"+120 GDP",fx:{gdp:120,healthcare:80}},
-  {n:"Corruption",e:"😤",m:"-150 GDP",fx:{gdp:-150,diplomacy:-80}},{n:"Medical Win",e:"🧬",m:"+200 Health",fx:{healthcare:200}},
-  {n:"Trade Surplus",e:"🚢",m:"+180 GDP",fx:{gdp:180}},{n:"Tornado",e:"🌪️",m:"-150 GDP -50 Health",fx:{gdp:-150,healthcare:-50}},
+  // Original economic events
+  {n:"Economic Boom",e:"📈",m:"+250 GDP",fx:{gdp:250}},
+  {n:"Oil Discovery",e:"⛽",m:"+200 Oil",fx:{oil:200}},
+  {n:"Tech IPO",e:"💻",m:"+150 GDP +80 Tech",fx:{gdp:150,technology:80}},
+  {n:"Earthquake",e:"🌋",m:"-200 GDP",fx:{gdp:-200,healthcare:-80}},
+  {n:"Nobel Prize",e:"🏆",m:"+150 Edu +100 Diplo",fx:{education:150,diplomacy:100}},
+  {n:"Market Crash",e:"📉",m:"-250 GDP",fx:{gdp:-250}},
+  {n:"World Cup",e:"⚽",m:"+200 Diplo",fx:{diplomacy:200}},
+  {n:"Lithium Find",e:"🔋",m:"+200 Lithium",fx:{lithium:200}},
+  {n:"Brain Drain",e:"✈️",m:"-100 Edu",fx:{education:-100,technology:-80}},
+  {n:"Foreign Aid",e:"🤝",m:"+120 GDP",fx:{gdp:120,healthcare:80}},
+  {n:"Corruption Scandal",e:"😤",m:"-150 GDP",fx:{gdp:-150,diplomacy:-80}},
+  {n:"Medical Breakthrough",e:"🧬",m:"+200 Health",fx:{healthcare:200}},
+  {n:"Trade Surplus",e:"🚢",m:"+180 GDP",fx:{gdp:180}},
+  {n:"Tornado",e:"🌪️",m:"-150 GDP -50 Health",fx:{gdp:-150,healthcare:-50}},
+  // 30 TWC$-earning scenarios (minimum $50)
+  {n:"Spy Ring Busted",e:"🕵️",m:"Intelligence bonus — earn TWC$",fx:{defense:100},twc:100},
+  {n:"Tourism Boom",e:"✈️",m:"International visitors flood your nation",fx:{gdp:150,diplomacy:80},twc:75},
+  {n:"Satellite Launch",e:"🛰️",m:"Space program success — earn TWC$",fx:{technology:200},twc:150},
+  {n:"Renewable Energy Deal",e:"☀️",m:"Green energy exports boost revenue",fx:{gdp:200,lithium:100},twc:100},
+  {n:"UN Security Council Seat",e:"🌐",m:"Diplomatic prestige — earn TWC$",fx:{diplomacy:250},twc:200},
+  {n:"World Bank Loan Forgiven",e:"💳",m:"Debt relief — earn TWC$",fx:{gdp:300},twc:150},
+  {n:"Olympic Hosting Rights",e:"🏅",m:"Global spotlight boosts economy",fx:{gdp:200,diplomacy:150},twc:125},
+  {n:"Rare Earth Export Deal",e:"⛏️",m:"Critical minerals in high demand",fx:{lithium:300,gdp:150},twc:100},
+  {n:"Cybersecurity Contract",e:"🔐",m:"Tech export earns TWC$",fx:{technology:150,defense:80},twc:75},
+  {n:"Pandemic Vaccine Export",e:"💉",m:"Your nation leads global health response",fx:{healthcare:250,diplomacy:100},twc:150},
+  {n:"Arms Export Approved",e:"🪖",m:"Defense contract signed — earn TWC$",fx:{defense:200,gdp:100},twc:200},
+  {n:"Deep Sea Mining Rights",e:"🌊",m:"Ocean floor resources discovered",fx:{oil:250,lithium:150},twc:125},
+  {n:"Quantum Computing Lab",e:"⚛️",m:"Tech breakthrough earns TWC$",fx:{technology:300},twc:200},
+  {n:"Agricultural Surplus",e:"🌾",m:"Food exports generate revenue — TWC$",fx:{gdp:180,healthcare:80},twc:75},
+  {n:"Currency Reserve Status",e:"💴",m:"Global currency trust boosts economy",fx:{gdp:400,diplomacy:200},twc:250},
+  {n:"Peacekeeping Mission",e:"🕊️",m:"UN peacekeepers deployed — diplomatic bonus",fx:{diplomacy:300,defense:50},twc:100},
+  {n:"Space Mining License",e:"🚀",m:"Asteroid resources — earn TWC$",fx:{lithium:400,technology:200},twc:300},
+  {n:"Luxury Goods Boom",e:"💎",m:"High-end exports flood global markets",fx:{gdp:250,diplomacy:80},twc:100},
+  {n:"Cybercrime Ring Dismantled",e:"💻",m:"Tech sector confidence rises — TWC$",fx:{technology:100,defense:150},twc:75},
+  {n:"Nobel Peace Prize",e:"🕊️",m:"Your leader wins world prestige",fx:{diplomacy:400,education:200},twc:200},
+  {n:"Military Aid Contract",e:"⚔️",m:"Allied nation buys your defense tech",fx:{defense:250,gdp:150},twc:150},
+  {n:"Cultural Heritage Site",e:"🏛️",m:"UNESCO listing drives tourism — TWC$",fx:{diplomacy:150,gdp:100},twc:75},
+  {n:"Fintech Revolution",e:"📱",m:"Digital banking exports earn TWC$",fx:{technology:200,gdp:200},twc:125},
+  {n:"Arctic Drilling Rights",e:"🧊",m:"New oil reserves discovered",fx:{oil:400,gdp:200},twc:150},
+  {n:"Refugee Tech Talent",e:"🌍",m:"Skilled immigrants boost tech sector",fx:{technology:250,education:100},twc:100},
+  {n:"Trade Route Secured",e:"🗺️",m:"New shipping lane controlled — TWC$",fx:{gdp:300,diplomacy:100},twc:175},
+  {n:"G7 Summit Hosting",e:"🏛️",m:"You host global leaders — prestige!",fx:{diplomacy:500,gdp:100},twc:200},
+  {n:"Pandemic Preparedness Award",e:"🏆",m:"Global health recognition — earn TWC$",fx:{healthcare:300,diplomacy:150},twc:125},
+  {n:"Autonomous Vehicle Deal",e:"🚗",m:"EV tech export earns TWC$",fx:{technology:250,gdp:150},twc:100},
+  {n:"Nuclear Power Plant Deal",e:"☢️",m:"Energy independence — earn TWC$",fx:{oil:-50,gdp:400,defense:100},twc:250},
 ];
 
 const NATIONS=[
@@ -672,7 +711,7 @@ function TWC(){
       if(tickRef.current%10===0)setElapsed(s=>s+1);
       const curPS=getPS();
       setRes(p=>{const n={...p};let earned=0;Object.entries(curPS).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a/10);if(a>0)earned+=a/10});if(earned>0)setTotE(te=>te+earned);return n});
-      if(tickRef.current>50&&tickRef.current%500===0){const ev=PASSIVES[Math.floor(Math.random()*PASSIVES.length)];setRes(p=>{const n={...p};Object.entries(ev.fx).forEach(([r,a])=>{n[r]=Math.max(0,(n[r]||0)+a)});return n});setLog(l=>[`${ev.e} ${ev.n}: ${ev.m}`,...l].slice(0,60));setTicker(t=>[`${ev.e} ${ev.n}`,...t].slice(0,5))}
+      if(tickRef.current>50&&tickRef.current%500===0){const ev=PASSIVES[Math.floor(Math.random()*PASSIVES.length)];setRes(p=>{const n={...p};Object.entries(ev.fx).forEach(([r,a])=>{if(r!=='twc')n[r]=Math.max(0,(n[r]||0)+a)});return n});if(ev.twc&&ev.twc>0){setTwcBucks(b=>b+ev.twc);setLog(l=>[`💵 +$${ev.twc} TWC$ — ${ev.n}!`,...l].slice(0,60));}setLog(l=>[`${ev.e} ${ev.n}: ${ev.m}`,...l].slice(0,60));setTicker(t=>[`${ev.e} ${ev.n}`,...t].slice(0,5))}
       if(tickRef.current>100&&tickRef.current%900===0&&!crisis&&!pendingCrisis&&!warGame){if(crisisI.current>=crisisQ.current.length){crisisQ.current=shuffle(CR);crisisI.current=0}pendingRef.current=true;setPendingCrisis(crisisQ.current[crisisI.current]);crisisI.current++;setPhoneRinging(true);if(!muted)SFX.phone_buzz();phoneBuzzRef.current=setInterval(()=>{if(!pendingRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null;return}if(!muted&&!phoneSilenced)SFX.phone_buzz()},3000)}
     },100);
     return()=>clearInterval(iv);
@@ -781,7 +820,7 @@ function TWC(){
     let result;
     if(roll<1){result={won:true,amount:300,tier:"🎰 JACKPOT",color:"#FFD700"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
     else if(roll<4){result={won:true,amount:100,tier:"💎 BIG WIN",color:"#A855F7"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
-    else if(roll<14){result={won:true,amount:25,tier:"🎉 WINNER",color:"#10B981"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
+    else if(roll<14){result={won:true,amount:50,tier:"🎉 WINNER",color:"#10B981"};if(!muted)SFX.lottery_win();setLotteryWin(result)}
     else{result={won:false,amount:0,tier:"❌ NO LUCK",color:"#EF4444"};if(!muted)SFX.quiz_wrong()}
     if(result.won){setTwcBucks(b=>b+result.amount);setLog(l=>[`🎰 Lottery: ${result.tier}! +$${result.amount} TWC$`,...l].slice(0,60))}
     else{if(!muted)SFX.lottery_lose();setLotteryLose(true);setLog(l=>["🎰 Lottery: Better luck tomorrow!",...l].slice(0,60))}
@@ -800,9 +839,10 @@ function TWC(){
   const meetsReq=u=>{for(const[b,c]of Object.entries(u.req))if((blds[b]||0)<c)return false;return true};
   const handleCrisis=opt=>{
     setRes(p=>{const n={...p};Object.entries(opt.fx).forEach(([r,a])=>n[r]=Math.max(0,(n[r]||0)+a));return n});
+    if(opt.twc&&opt.twc>0){setTwcBucks(b=>b+opt.twc);setLog(l=>[`💵 +$${opt.twc} TWC$ earned!`,...l].slice(0,60));}
     setDecs(d=>d+1);setLog(l=>[`⚠️ ${crisis.e} ${crisis.n} → ${opt.l}`,...l].slice(0,60));
     setTicker(t=>[`⚠️ ${crisis.n}: ${opt.l}`,...t].slice(0,5));
-    setTimeout(saveNow,500);setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx});
+    setTimeout(saveNow,500);setCrisisResult({name:crisis.n,emoji:crisis.e,choice:opt.l,choiceEmoji:opt.e,fx:opt.fx,twc:opt.twc||0});
     setCrisis(null);pendingRef.current=false;if(phoneBuzzRef.current){clearInterval(phoneBuzzRef.current);phoneBuzzRef.current=null}setPhoneRinging(false);setPhoneSilenced(false);setDow(d=>Math.max(1000,d+Math.floor((Math.random()-0.5)*500)))};
 
   const startQuiz=()=>{if(qIdx.current>=qPool.current.length){qPool.current=shuffle(QS);qIdx.current=0}const q=qPool.current[qIdx.current];qIdx.current++;setQQ(q);setQO(shuffle([q.a,...q.w]));setQR(null);setQA(true);setQT(15);if(qTR.current)clearInterval(qTR.current);qTR.current=setInterval(()=>{setQT(t=>{if(t<=1){clearInterval(qTR.current);if(!muted)SFX.quiz_wrong();setQR("wrong");setQStrk(0);setQTot(x=>x+1);return 0}return t-1})},1000)};
@@ -848,7 +888,7 @@ function TWC(){
   const submitLB=async()=>{if(submitCooldown>0){setSubMsg("⏱ Wait "+submitCooldown+"s before submitting again");return}setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");setSubmitCooldown(300);loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firebase error 403 — check Realtime DB rules in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
 
   const S={c:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 10px"},b:(on,col)=>({padding:"5px 10px",borderRadius:7,border:"none",fontWeight:700,fontSize:10,background:on?col:"rgba(255,255,255,0.06)",color:on?"#fff":"rgba(255,255,255,0.2)",cursor:on?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"})};
-  const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
+  const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
 
   if(screen==="title"){return(
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#020508",fontFamily:"Georgia,serif",color:"#d1d5db",padding:16,overflow:"auto",position:"relative"}}>
@@ -907,7 +947,7 @@ function TWC(){
       {achToast&&<div style={{position:"fixed",top:50,left:"50%",transform:"translateX(-50%)",zIndex:9998,background:"linear-gradient(135deg,#FFD700,#FFA500)",color:"#000",padding:"8px 16px",borderRadius:8,fontWeight:700,fontSize:12,animation:"achPop .5s ease",boxShadow:"0 4px 24px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)",whiteSpace:"nowrap"}}>🏆 {achToast.e} {achToast.n} (+{achToast.pts})</div>}
 
       {/* CRISIS RESULT */}
-      {crisisResult&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10001,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}><div style={{background:"linear-gradient(160deg,#0d1a2a,#1a1028)",border:"1px solid rgba(255,215,0,.2)",borderRadius:12,padding:16,maxWidth:380,width:"100%",animation:"slideIn .3s ease",textAlign:"center"}}><div style={{fontSize:28,marginBottom:2}}>{crisisResult.emoji}</div><div style={{fontSize:14,fontWeight:800,color:"#FFD700",marginBottom:1}}>{crisisResult.name}</div><div style={{fontSize:10,opacity:.4,marginBottom:10}}>Chose: {crisisResult.choiceEmoji} {crisisResult.choice}</div><div style={{fontSize:10,fontWeight:700,opacity:.3,marginBottom:6}}>CONSEQUENCES</div><div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:12}}>{Object.entries(crisisResult.fx).map(([r,a])=><div key={r} style={{padding:"5px 6px",borderRadius:5,background:a>0?"rgba(16,185,129,.08)":"rgba(239,68,68,.08)",border:`1px solid ${a>0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)"}`}}><div style={{fontSize:14}}>{RES[r]?.e||r}</div><div style={{fontSize:12,fontWeight:700,color:a>0?"#6EE7B7":"#EF4444"}}>{a>0?"+":""}{a}</div><div style={{fontSize:7,opacity:.3}}>{RES[r]?.n||r}</div></div>)}</div><button className="hov" onClick={()=>{setCrisisResult(null);setTab("gather")}} style={{padding:"8px 22px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>✅ Back to Dashboard</button></div></div>}
+      {crisisResult&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10001,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}><div style={{background:"linear-gradient(160deg,#0d1a2a,#1a1028)",border:"1px solid rgba(255,215,0,.2)",borderRadius:12,padding:16,maxWidth:380,width:"100%",animation:"slideIn .3s ease",textAlign:"center"}}><div style={{fontSize:28,marginBottom:2}}>{crisisResult.emoji}</div><div style={{fontSize:14,fontWeight:800,color:"#FFD700",marginBottom:1}}>{crisisResult.name}</div><div style={{fontSize:10,opacity:.4,marginBottom:10}}>Chose: {crisisResult.choiceEmoji} {crisisResult.choice}</div><div style={{fontSize:10,fontWeight:700,opacity:.3,marginBottom:6}}>CONSEQUENCES</div><div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:12}}>{Object.entries(crisisResult.fx).map(([r,a])=><div key={r} style={{padding:"5px 6px",borderRadius:5,background:a>0?"rgba(16,185,129,.08)":"rgba(239,68,68,.08)",border:`1px solid ${a>0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)"}`}}><div style={{fontSize:14}}>{RES[r]?.e||r}</div><div style={{fontSize:12,fontWeight:700,color:a>0?"#6EE7B7":"#EF4444"}}>{a>0?"+":""}{a}</div><div style={{fontSize:7,opacity:.3}}>{RES[r]?.n||r}</div></div>)}</div>{crisisResult.twc>0&&<div style={{padding:"8px 12px",borderRadius:7,background:"rgba(255,215,0,.1)",border:"1px solid rgba(255,215,0,.3)",marginBottom:10,fontSize:13,fontWeight:700,color:"#FFD700"}}>💵 +${crisisResult.twc} TWC$ earned!</div>}<button className="hov" onClick={()=>{setCrisisResult(null);setTab("gather")}} style={{padding:"8px 22px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>✅ Back to Dashboard</button></div></div>}
 
       {/* CRISIS */}
       {crisis&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:10}}><div style={{background:"linear-gradient(160deg,#1a1028,#0d1a2a)",border:"1px solid rgba(255,80,80,.2)",borderRadius:12,padding:14,maxWidth:440,width:"100%",maxHeight:"90vh",overflow:"auto",animation:"slideIn .3s ease"}}><div style={{textAlign:"center",marginBottom:8}}><div style={{fontSize:10,letterSpacing:4,color:"#EF4444",animation:"pulse 1.5s infinite",textShadow:"0 0 10px rgba(239,68,68,.5)"}}>⚠️ CRISIS ⚠️</div><div style={{fontSize:28,margin:"3px 0"}}>{crisis.e}</div><h2 style={{fontSize:14,fontWeight:800,color:"#FFD700",margin:"0 0 3px"}}>{crisis.n}</h2><p style={{fontSize:10,opacity:.5,lineHeight:1.3}}>{crisis.d}</p></div><div style={{display:"flex",flexDirection:"column",gap:4}}>{crisis.o.map((opt,i)=><button key={i} className="hov" onClick={()=>handleCrisis(opt)} style={{width:"100%",padding:"8px 8px",borderRadius:7,cursor:"pointer",textAlign:"left",background:["rgba(59,130,246,.06)","rgba(239,68,68,.06)","rgba(245,158,11,.06)","rgba(16,185,129,.06)","rgba(168,85,247,.06)"][i%5],border:`1px solid ${["rgba(59,130,246,.15)","rgba(239,68,68,.15)","rgba(245,158,11,.15)","rgba(16,185,129,.15)","rgba(168,85,247,.15)"][i%5]}`,color:"#d1d5db",fontFamily:"inherit"}}><div style={{fontSize:11,fontWeight:700}}>{opt.e} {opt.l}</div><div style={{fontSize:8,opacity:.35}}>{opt.d}</div></button>)}</div></div></div>}
@@ -1055,50 +1095,6 @@ function TWC(){
         {tab==="quiz"&&<div style={{animation:"fadeUp .25s ease",maxWidth:440,margin:"0 auto"}}>{!qA?(<div style={{textAlign:"center",padding:12}}><div style={{fontSize:36,marginBottom:4}}>🎓</div><h2 style={{fontSize:16,fontWeight:800,color:gov?.c,margin:"0 0 4px"}}>KNOWLEDGE IS POWER</h2><p style={{fontSize:9,opacity:.4,marginBottom:10}}>Quiz = only way to earn Education! Streak up to 5x 🔥</p><div style={{display:"flex",justifyContent:"center",gap:10,marginBottom:10,fontSize:10}}><span>✅{qCorr}</span><span>📝{qTot}</span><span>🔥{qStrk}</span><span>⚡Best:{bestStrk}</span></div><button className="hov" onClick={startQuiz} style={{padding:"8px 28px",fontSize:13,fontWeight:700,borderRadius:7,border:"none",background:gov?.c,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>📝 START</button><div style={{marginTop:8}}><button onClick={()=>setTab("gather")} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:5,padding:"4px 12px",cursor:"pointer",color:"#d1d5db",fontSize:9,fontFamily:"inherit"}}>← Back</button></div></div>):(<div style={{padding:4}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><button onClick={()=>{if(qTR.current)clearInterval(qTR.current);setQA(false);setQR(null);setTab("gather")}} style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(255,255,255,.08)",borderRadius:4,padding:"2px 6px",cursor:"pointer",color:"#d1d5db",fontSize:8,fontFamily:"inherit"}}>← Exit</button><span style={{fontSize:8,opacity:.3}}>🎓{qCorr}/{qTot}</span></div><div style={{height:3,background:"rgba(255,255,255,.05)",borderRadius:2,marginBottom:6,overflow:"hidden"}}><div style={{height:"100%",width:`${(qT/15)*100}%`,background:qT>5?gov?.c:qT>2?"#F59E0B":"#EF4444",borderRadius:2,transition:"width 1s linear"}}/></div><div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:8,opacity:.35}}><span>{qQ?.cat}</span><span>⏱{qT}s</span>{qStrk>0&&<span style={{color:"#F59E0B"}}>{qStrk}🔥</span>}</div><div style={{...S.c,padding:10,marginBottom:6,textAlign:"center",fontSize:12,fontWeight:600,lineHeight:1.3,minHeight:50,display:"flex",alignItems:"center",justifyContent:"center"}}>{qQ?.q}</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>{qO.map((o,i)=>{const isA=o===qQ?.a;const gn=qR&&isA;return(<button key={i} onClick={()=>ansQ(o)} disabled={!!qR} style={{padding:"8px 5px",borderRadius:6,border:gn?"2px solid #10B981":"1px solid rgba(255,255,255,.05)",background:gn?"rgba(16,185,129,.1)":"rgba(255,255,255,.02)",color:gn?"#6EE7B7":qR&&!isA?"rgba(255,255,255,.12)":"#d1d5db",cursor:qR?"default":"pointer",fontFamily:"inherit",fontSize:10,fontWeight:600,opacity:qR&&!isA?.25:1}}>{o}</button>)})}</div>{qR&&<div style={{textAlign:"center",marginTop:8,animation:"fadeUp .25s ease"}}>{qR==="correct"?<div><div style={{fontSize:24,animation:"fire .5s"}}>✅</div><div style={{fontSize:13,fontWeight:800,color:"#10B981"}}>CORRECT!</div><div style={{fontSize:9,opacity:.4}}>+{Math.round(10*Math.min(qStrk,5)*(gov?.b.education||1))} Edu · {qStrk}🔥</div></div>:<div><div style={{fontSize:24,animation:"shake .3s"}}>❌</div><div style={{fontSize:13,fontWeight:800,color:"#EF4444"}}>WRONG</div><div style={{fontSize:9,opacity:.4}}>Answer: <b>{qQ?.a}</b></div></div>}<div style={{marginTop:5}}><button className="hov" onClick={()=>{setQA(false);setQR(null)}} style={{padding:"5px 14px",fontSize:10,fontWeight:700,borderRadius:5,border:"none",background:gov?.c,color:"#fff",cursor:"pointer",fontFamily:"inherit",marginRight:6}}>NEXT →</button><button onClick={()=>{setQA(false);setQR(null);setTab("gather")}} style={{padding:"5px 10px",fontSize:9,borderRadius:5,border:"1px solid rgba(255,255,255,.08)",background:"rgba(255,255,255,.04)",color:"#d1d5db",cursor:"pointer",fontFamily:"inherit"}}>Done</button></div></div>}</div>)}</div>}
 
         {/* SIM TAB */}
-        {tab==="store"&&<div style={{animation:"fadeUp .25s ease"}}>
-          <div style={{textAlign:"center",marginBottom:8}}>
-            <div style={{fontSize:9,opacity:.3,letterSpacing:2,marginBottom:3}}>🛒 TWC WEAPON STORE</div>
-            <div style={{fontSize:9,opacity:.4}}>Individual Contribution · Buy weapons for Total World Conquest</div>
-            <div style={{fontSize:18,fontWeight:800,color:"#6EE7B7",marginTop:4}}>💵 ${twcBucks} TWC$</div>
-          </div>
-
-          {/* INVENTORY */}
-          {Object.keys(inventory).length>0&&<div style={{...S.c,padding:8,marginBottom:8}}>
-            <div style={{fontSize:9,opacity:.3,marginBottom:4}}>📦 YOUR INVENTORY</div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
-              {STORE.filter(item=>inventory[item.id]>0).map(item=>(
-                <div key={item.id} style={{background:"rgba(255,215,0,.08)",border:"1px solid rgba(255,215,0,.15)",borderRadius:6,padding:"4px 8px",display:"flex",alignItems:"center",gap:3}}>
-                  <span style={{fontSize:14}}>{item.e}</span>
-                  <div><div style={{fontSize:9,fontWeight:700,color:"#FFD700"}}>{item.n}</div><div style={{fontSize:7,opacity:.4}}>Owned: {inventory[item.id]}</div></div>
-                </div>
-              ))}
-            </div>
-          </div>}
-
-          {/* STORE GRID */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
-            {STORE.map(item=>{
-              const owned=inventory[item.id]||0;
-              const canBuy=twcBucks>=item.price&&(item.stack||owned<1);
-              const maxed=!item.stack&&owned>=1;
-              return(
-                <div key={item.id} style={{...S.c,padding:8,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",opacity:maxed?.5:1}}>
-                  <div style={{fontSize:24,marginBottom:2}}>{item.e}</div>
-                  <div style={{fontSize:10,fontWeight:700,color:"#FFD700"}}>{item.n}</div>
-                  <div style={{fontSize:7,opacity:.4,marginBottom:3,lineHeight:1.3}}>{item.d}</div>
-                  <div style={{fontSize:13,fontWeight:800,color:"#6EE7B7",marginBottom:2}}>${item.price}</div>
-                  {owned>0&&<div style={{fontSize:7,opacity:.5,marginBottom:2}}>{item.stack?"✅ Stackable":"❌ Max 1"} · Own: {owned}</div>}
-                  <button className="hov" onClick={()=>buyItem(item)} disabled={!canBuy} style={{...S.b(canBuy,"#F59E0B"),width:"100%",padding:"6px 0",fontSize:10}}>
-                    {maxed?"Max Owned":canBuy?"🛒 BUY":"Need $"+(item.price-twcBucks)}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{textAlign:"center",fontSize:7,opacity:.2,marginTop:8}}>Earn TWC$ from the Daily Lottery (Intel tab) · Purchases tracked for classroom use</div>
-        </div>}
-
         {tab==="sim"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>NATION SIMULATION · G.R.A.P.E.S.</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4,marginBottom:8}}>
             {[
@@ -1149,7 +1145,7 @@ function TWC(){
         {/* INTEL */}
         {tab==="intel"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>INTEL & LEADERBOARD</div>
           <div style={{...S.c,padding:10,marginBottom:6,background:"linear-gradient(135deg,rgba(255,215,0,.06),rgba(168,85,247,.06))",border:"1px solid rgba(255,215,0,.15)"}}>
-          <div style={{textAlign:"center",marginBottom:6}}><span style={{fontSize:20}}>🎰</span><div style={{fontSize:11,fontWeight:700,color:"#FFD700"}}>DAILY TWC$ LOTTERY</div><div style={{fontSize:8,opacity:.4}}>1% Jackpot ($300) · 3% Big ($100) · 10% Win ($25)</div><div style={{fontSize:10,fontWeight:700,color:"#6EE7B7",marginTop:3}}>💵 Your TWC$: ${twcBucks}</div></div>
+          <div style={{textAlign:"center",marginBottom:6}}><span style={{fontSize:20}}>🎰</span><div style={{fontSize:11,fontWeight:700,color:"#FFD700"}}>DAILY TWC$ LOTTERY</div><div style={{fontSize:8,opacity:.4}}>1% Jackpot ($300) · 3% Big ($100) · 10% Win ($50)</div><div style={{fontSize:10,fontWeight:700,color:"#6EE7B7",marginTop:3}}>💵 Your TWC$: ${twcBucks}</div></div>
           {lotteryTimer>0?(<div style={{textAlign:"center"}}><div style={{fontSize:9,opacity:.4}}>Next draw in:</div><div style={{fontSize:14,fontWeight:700,color:"#F59E0B"}}>{Math.floor(lotteryTimer/3600)}h {Math.floor((lotteryTimer%3600)/60)}m {lotteryTimer%60}s</div></div>):(<div style={{textAlign:"center"}}><button className="hov" onClick={playLottery} style={{padding:"8px 24px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"linear-gradient(135deg,#FFD700,#F59E0B)",color:"#000",cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 12px rgba(255,215,0,.3)"}}>🎰 Play Lottery</button></div>)}
           {lotteryResult&&<div style={{textAlign:"center",marginTop:6,animation:"fadeUp .3s ease"}}><div style={{fontSize:16,fontWeight:800,color:lotteryResult.color}}>{lotteryResult.tier}</div>{lotteryResult.won&&<div style={{fontSize:11,color:"#6EE7B7"}}>+${lotteryResult.amount} TWC$!</div>}</div>}
         <div style={{fontSize:8,opacity:.3,marginTop:4}}>💰 Visit the Store tab to spend TWC$!</div>
