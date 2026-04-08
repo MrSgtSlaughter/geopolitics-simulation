@@ -82,10 +82,36 @@ const{useState,useEffect,useCallback,useRef,useMemo}=React;
    © 2026 Jason Slaughter · PixelED Path, LLC
    Firebase: minigolf-fd9ea / twc_modern_scores */
 
-const FB="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
-const fbV=f=>f?Object.values(f)[0]:"";
-const fbPost=async d=>{const fs={};for(const[k,v]of Object.entries(d))fs[k]=typeof v==="number"?{integerValue:String(Math.floor(v))}:{stringValue:String(v)};try{const r=await fetch(FB,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fs})});if(!r.ok){const t=await r.text();console.error("FB POST error:",r.status,t);return"ERR:"+r.status}return true}catch(e){console.error("FB network error:",e);return"ERR:network"}};
-const fbGet=async()=>{try{const r=await fetch(FB+"?pageSize=50");if(!r.ok){console.error("FB GET error:",r.status);return[]}const d=await r.json();const docs=(d.documents||[]).map(x=>{const f=x.fields||{};return{name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,tier:fbV(f.tier),ach:Number(fbV(f.ach))||0,period:fbV(f.period),twc:Number(fbV(f.twc))||0}});docs.sort((a,b)=>b.score-a.score);return docs.slice(0,30)}catch(e){console.error("FB GET network:",e);return[]}};
+// Firebase Realtime DB — minigolf-fd9ea (no expiry, no SDK needed)
+const FB_RTDB="https://minigolf-fd9ea-default-rtdb.firebaseio.com";
+const FB_KEY="AIzaSyB9hsCBMFPC9PFkBL0mV5aK6ioyCkH6DM8";
+const FB_SCORES_PATH="twc_modern_scores";
+
+const fbPost=async d=>{
+  try{
+    const url=`${FB_RTDB}/${FB_SCORES_PATH}.json?auth=${FB_KEY}`;
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...d,ts:Date.now()})});
+    if(!r.ok){const t=await r.text();console.error("FB POST error:",r.status,t);return"ERR:"+r.status}
+    return true
+  }catch(e){console.error("FB network error:",e);return"ERR:network"}
+};
+
+const fbGet=async()=>{
+  try{
+    const url=`${FB_RTDB}/${FB_SCORES_PATH}.json?auth=${FB_KEY}&orderBy="score"&limitToLast=50`;
+    const r=await fetch(url);
+    if(!r.ok){console.error("FB GET error:",r.status);return[]}
+    const data=await r.json();
+    if(!data)return[];
+    const docs=Object.values(data).map(x=>({
+      name:x.name||"",nation:x.nation||"",gov:x.gov||"",
+      score:Number(x.score)||0,tier:x.tier||"",
+      ach:Number(x.ach)||0,period:x.period||"",twc:Number(x.twc)||0
+    }));
+    docs.sort((a,b)=>b.score-a.score);
+    return docs.slice(0,30);
+  }catch(e){console.error("FB GET network:",e);return[]}
+};
 // ─── TWC STORE (Individual Contribution) ─────────────────────
 const STORE=[
   {id:"ranger",n:"Airborne Ranger",e:"🪖",d:"+1 attack roll",price:100,stack:true},
@@ -483,7 +509,7 @@ const ACHS=[
 
 function TWC(){
   const[screen,setScreen]=useState("title");const[relKey,setRelKey]=useState(null);const[period,setPeriod]=useState(null);
-  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[lotteryWin,setLotteryWin]=useState(null);const[lotteryLose,setLotteryLose]=useState(false);const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[contribModal,setContribModal]=useState(false);const[contribItem,setContribItem]=useState(null);const[contribName,setContribName]=useState(()=>{try{return localStorage.getItem('twc_student_name')||''}catch{return''}});const[contribPeriod,setContribPeriod]=useState(()=>{try{return localStorage.getItem('twc_student_period')||''}catch{return''}});const[contribStatus,setContribStatus]=useState('');const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
+  const[muted,setMuted]=useState(false);const[lotteryResult,setLotteryResult]=useState(null);const[lotteryWin,setLotteryWin]=useState(null);const[lotteryLose,setLotteryLose]=useState(false);const[contribModal,setContribModal]=useState(false);const[contribItem,setContribItem]=useState(null);const[contribName,setContribName]=useState(()=>localStorage.getItem('twc_student_name')||''  );const[contribPeriod,setContribPeriod]=useState(()=>localStorage.getItem('twc_student_period')||''  );const[contribStatus,setContribStatus]=useState('');const[twcBucks,setTwcBucks]=useState(0);const[inventory,setInventory]=useState({});const[saveCode,setSaveCode]=useState("");const[loadCode,setLoadCode]=useState("");const[saveMsg,setSaveMsg]=useState("");const[lotteryTimer,setLotteryTimer]=useState(0);const lotteryCheckRef=useRef(null);const musicRef=useRef(null);const[newsIdx,setNewsIdx]=useState(0);
   const[gk,setGk]=useState(null);const[nN,setNN]=useState("");const[lN,setLN]=useState("");
   const[res,setRes]=useState({gdp:80,oil:30,lithium:0,technology:0,education:0,defense:0,healthcare:0,diplomacy:0});
   const[blds,setBlds]=useState({});const[upgs,setUpgs]=useState([]);const[tab,setTab]=useState("gather");
@@ -705,24 +731,35 @@ function TWC(){
       if(!muted)SFX.achieve();
     }catch(e){setSaveMsg("❌ Invalid save code. Check and try again.")}
   };
+  const CONTRIB_FB_URL='https://minigolf-fd9ea-default-rtdb.firebaseio.com';
+  const CONTRIB_FB_KEY='AIzaSyB9hsCBMFPC9PFkBL0mV5aK6ioyCkH6DM8';
+
   const buyItem=(item)=>{
     if(twcBucks<item.price)return;
     if(!item.stack&&(inventory[item.id]||0)>=1)return;
-    // Open contribution modal — student enters name+period before purchase is sent to TWC
+    // Open contribution modal instead of buying immediately
     setContribItem(item);
     setContribStatus('');
     setContribModal(true);
   };
-  const CONTRIB_FB_URL='https://minigolf-fd9ea-default-rtdb.firebaseio.com';
-  const CONTRIB_FB_KEY='AIzaSyB9hsCBMFPC9PFkBL0mV5aK6ioyCkH6DM8';
+
   const confirmContrib=async()=>{
     if(!contribName.trim()){alert('Enter your name first!');return;}
     if(!contribPeriod){alert('Select your class period!');return;}
     if(!contribItem)return;
-    try{localStorage.setItem('twc_student_name',contribName.trim())}catch{}
-    try{localStorage.setItem('twc_student_period',contribPeriod)}catch{}
+    localStorage.setItem('twc_student_name',contribName.trim());
+    localStorage.setItem('twc_student_period',contribPeriod);
     setContribStatus('sending');
-    const payload={name:contribName.trim(),period:contribPeriod,unit_id:contribItem.id,unit_name:contribItem.n,emoji:contribItem.e,price:contribItem.price,status:'pending',timestamp:Date.now()};
+    const payload={
+      name:contribName.trim(),
+      period:contribPeriod,
+      unit_id:contribItem.id,
+      unit_name:contribItem.n,
+      emoji:contribItem.e,
+      price:contribItem.price,
+      status:'pending',
+      timestamp:Date.now()
+    };
     try{
       const url=`${CONTRIB_FB_URL}/twc_contributions/${contribPeriod}.json?auth=${CONTRIB_FB_KEY}`;
       const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -731,9 +768,9 @@ function TWC(){
       setInventory(p=>({...p,[contribItem.id]:(p[contribItem.id]||0)+1}));
       if(!muted)SFX.achieve();
       setTimeout(saveNow,300);
-      setLog(l=>[`📬 ${contribItem.e} ${contribItem.n} submitted to Mr. Slaughter for ${contribPeriod} ($${contribItem.price} TWC$)!`,...l].slice(0,60));
+      setLog(l=>[`📬 ${contribItem.e} ${contribItem.n} submitted to Mr. Slaughter! ($${contribItem.price} TWC$)`,...l].slice(0,60));
       setContribStatus('sent');
-      setTimeout(()=>{setContribModal(false);setContribItem(null);setContribStatus('');},2000);
+      setTimeout(()=>{setContribModal(false);setContribItem(null);setContribStatus('');},2200);
     }catch(e){
       setContribStatus('error');
     }
@@ -808,7 +845,7 @@ function TWC(){
   const doSanction=nat=>{if(!canAff({diplomacy:30}))return;spend({diplomacy:30});setRels(p=>({...p,[nat.id]:{...p[nat.id],stance:"hostile",trade:false}}));setRes(p=>({...p,defense:(p.defense||0)+80}));setLog(l=>[`🚫 Sanctioned: ${nat.n}`,...l].slice(0,60))};
 
   const loadLB=async()=>{setLbL(true);setLbD(await fbGet());setLbL(false)};
-  const submitLB=async()=>{if(submitCooldown>0){setSubMsg("⏱ Wait "+submitCooldown+"s before submitting again");return}setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");setSubmitCooldown(300);loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firestore rules expired! Re-enable test mode in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
+  const submitLB=async()=>{if(submitCooldown>0){setSubMsg("⏱ Wait "+submitCooldown+"s before submitting again");return}setSubMsg("Submitting...");const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",gov:gov?.n||"?",score,tier:tier.n,ach:achPts,period:period||"?",twc:twcBucks,inv:JSON.stringify(inventory),grapes:Math.round((simStats.gGov+simStats.gRel+simStats.gAch+simStats.gPub+simStats.gEco+simStats.gSoc)/6)});if(ok===true){setSubMsg("✅ Submitted!");setSubmitCooldown(300);loadLB()}else if(typeof ok==="string"&&ok.startsWith("ERR:403")){setSubMsg("❌ Firebase error 403 — check Realtime DB rules in Firebase Console.")}else if(typeof ok==="string"){setSubMsg("❌ "+ok+" - Check Firebase Console")}else{setSubMsg("❌ Failed")}};
 
   const S={c:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:8,padding:"6px 10px"},b:(on,col)=>({padding:"5px 10px",borderRadius:7,border:"none",fontWeight:700,fontSize:10,background:on?col:"rgba(255,255,255,0.06)",color:on?"#fff":"rgba(255,255,255,0.2)",cursor:on?"pointer":"not-allowed",fontFamily:"inherit",transition:"all .15s",whiteSpace:"nowrap"})};
   const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
@@ -870,50 +907,6 @@ function TWC(){
       {achToast&&<div style={{position:"fixed",top:50,left:"50%",transform:"translateX(-50%)",zIndex:9998,background:"linear-gradient(135deg,#FFD700,#FFA500)",color:"#000",padding:"8px 16px",borderRadius:8,fontWeight:700,fontSize:12,animation:"achPop .5s ease",boxShadow:"0 4px 24px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)",whiteSpace:"nowrap"}}>🏆 {achToast.e} {achToast.n} (+{achToast.pts})</div>}
 
       {/* CRISIS RESULT */}
-      {contribModal&&contribItem&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10010,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-        <div style={{background:"linear-gradient(160deg,#0d1117,#1a1028)",border:"3px solid #FFD700",borderRadius:10,padding:20,maxWidth:360,width:"100%",fontFamily:"'Segoe UI',sans-serif"}}>
-          <div style={{color:"#FFD700",fontWeight:800,fontSize:15,marginBottom:3}}>📬 CONTRIBUTE TO YOUR EMPIRE</div>
-          <div style={{color:"#666",fontSize:10,marginBottom:12,lineHeight:1.4}}>
-            This sends {contribItem.e} {contribItem.n} to Mr. Slaughter's Total World Conquest. He'll apply it to your class inventory.
-          </div>
-          <div style={{color:"#aaa",fontSize:10,marginBottom:4,textTransform:"uppercase",letterSpacing:1}}>Your Name</div>
-          <input value={contribName} onChange={e=>setContribName(e.target.value)}
-            placeholder="First + Last Name"
-            style={{width:"100%",background:"#fff",color:"#000",border:"2px solid #FFD700",padding:"7px 10px",fontFamily:"inherit",fontSize:13,marginBottom:10,borderRadius:5,outline:"none"}}/>
-          <div style={{color:"#aaa",fontSize:10,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Class Period</div>
-          <div style={{display:"flex",gap:7,marginBottom:12}}>
-            {["1st","2nd","5th","6th"].map(p=>(
-              <button key={p} onClick={()=>setContribPeriod(p)}
-                style={{flex:1,padding:"9px 4px",fontFamily:"inherit",fontWeight:700,fontSize:13,cursor:"pointer",borderRadius:5,
-                  border:"2px solid "+(contribPeriod===p?"#FFD700":"#333"),
-                  background:contribPeriod===p?"#FFD700":"#1a1a1a",
-                  color:contribPeriod===p?"#000":"#777"}}>
-                {p}
-              </button>
-            ))}
-          </div>
-          <div style={{background:"#111",border:"1px solid #333",borderRadius:6,padding:"10px 12px",marginBottom:14}}>
-            <div style={{fontWeight:700,fontSize:13,color:"#FFD700"}}>{contribItem.e} {contribItem.n}</div>
-            <div style={{color:"#888",fontSize:10,marginTop:2}}>{contribItem.d}</div>
-            <div style={{color:"#FFD700",fontWeight:800,fontSize:14,marginTop:6}}>${contribItem.price} TWC$</div>
-            <div style={{color:"#555",fontSize:10,marginTop:2}}>Balance after: ${twcBucks-contribItem.price} TWC$</div>
-          </div>
-          {contribStatus==="sending"&&<div style={{textAlign:"center",color:"#aaa",fontSize:12,marginBottom:10}}>⏳ Submitting to Firebase...</div>}
-          {contribStatus==="sent"&&<div style={{textAlign:"center",color:"#00ff88",fontWeight:700,fontSize:13,marginBottom:10}}>✅ Submitted! Mr. Slaughter will apply it in class.</div>}
-          {contribStatus==="error"&&<div style={{textAlign:"center",color:"#ff4444",fontSize:12,marginBottom:10}}>❌ Failed — check your connection.</div>}
-          {contribStatus!=="sent"&&<div style={{display:"flex",gap:8}}>
-            <button onClick={confirmContrib} disabled={contribStatus==="sending"}
-              style={{flex:2,padding:"10px",background:"#FFD700",color:"#000",border:"none",fontFamily:"inherit",fontWeight:800,fontSize:13,cursor:"pointer",borderRadius:6,opacity:contribStatus==="sending"?0.6:1}}>
-              📬 SUBMIT CONTRIBUTION
-            </button>
-            <button onClick={()=>{setContribModal(false);setContribItem(null);}} disabled={contribStatus==="sending"}
-              style={{flex:1,padding:"10px",background:"#1a1a1a",color:"#777",border:"1px solid #333",fontFamily:"inherit",cursor:"pointer",borderRadius:6}}>
-              CANCEL
-            </button>
-          </div>}
-        </div>
-      </div>}
-
       {crisisResult&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10001,display:"flex",alignItems:"center",justifyContent:"center",padding:12}}><div style={{background:"linear-gradient(160deg,#0d1a2a,#1a1028)",border:"1px solid rgba(255,215,0,.2)",borderRadius:12,padding:16,maxWidth:380,width:"100%",animation:"slideIn .3s ease",textAlign:"center"}}><div style={{fontSize:28,marginBottom:2}}>{crisisResult.emoji}</div><div style={{fontSize:14,fontWeight:800,color:"#FFD700",marginBottom:1}}>{crisisResult.name}</div><div style={{fontSize:10,opacity:.4,marginBottom:10}}>Chose: {crisisResult.choiceEmoji} {crisisResult.choice}</div><div style={{fontSize:10,fontWeight:700,opacity:.3,marginBottom:6}}>CONSEQUENCES</div><div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:5,marginBottom:12}}>{Object.entries(crisisResult.fx).map(([r,a])=><div key={r} style={{padding:"5px 6px",borderRadius:5,background:a>0?"rgba(16,185,129,.08)":"rgba(239,68,68,.08)",border:`1px solid ${a>0?"rgba(16,185,129,.15)":"rgba(239,68,68,.15)"}`}}><div style={{fontSize:14}}>{RES[r]?.e||r}</div><div style={{fontSize:12,fontWeight:700,color:a>0?"#6EE7B7":"#EF4444"}}>{a>0?"+":""}{a}</div><div style={{fontSize:7,opacity:.3}}>{RES[r]?.n||r}</div></div>)}</div><button className="hov" onClick={()=>{setCrisisResult(null);setTab("gather")}} style={{padding:"8px 22px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"#FFD700",color:"#000",cursor:"pointer",fontFamily:"inherit"}}>✅ Back to Dashboard</button></div></div>}
 
       {/* CRISIS */}
@@ -952,7 +945,45 @@ function TWC(){
         </div>
       </div>}
 
-      {warRes&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",animation:"slideIn .3s ease"}}><div style={{textAlign:"center"}}><div style={{fontSize:46}}>{warRes.w?"🏆":"💀"}</div><h2 style={{fontSize:22,fontWeight:900,color:warRes.w?"#FFD700":"#EF4444"}}>{warRes.w?"VICTORY!":"DEFEAT!"}</h2><p style={{opacity:.4}}>vs {warRes.n}</p></div></div>}
+      {contribModal&&contribItem&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:10010,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{background:"#0d1117",border:"3px solid #FFD700",borderRadius:8,padding:20,maxWidth:360,width:"100%",fontFamily:"monospace"}}>
+        <div style={{color:"#FFD700",fontWeight:700,fontSize:16,marginBottom:4}}>📬 CONTRIBUTE TO YOUR EMPIRE</div>
+        <div style={{color:"#888",fontSize:11,marginBottom:14}}>This sends {contribItem.e} {contribItem.n} to Mr. Slaughter's TWC game. He'll add it to your class's inventory.</div>
+        <div style={{color:"#aaa",fontSize:11,marginBottom:4}}>YOUR NAME</div>
+        <input value={contribName} onChange={e=>setContribName(e.target.value)} placeholder="First + Last Name"
+          style={{width:"100%",background:"#fff",color:"#000",border:"2px solid #FFD700",padding:"6px 10px",fontFamily:"monospace",fontSize:13,marginBottom:10,borderRadius:4,boxSizing:"border-box"}}/>
+        <div style={{color:"#aaa",fontSize:11,marginBottom:4}}>CLASS PERIOD</div>
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          {["1st","2nd","5th","6th"].map(p=>(
+            <button key={p} onClick={()=>setContribPeriod(p)}
+              style={{flex:1,padding:"8px 4px",fontFamily:"monospace",fontWeight:700,fontSize:13,cursor:"pointer",borderRadius:4,
+                border:"2px solid "+(contribPeriod===p?"#FFD700":"#333"),
+                background:contribPeriod===p?"#FFD700":"#1a1a1a",
+                color:contribPeriod===p?"#000":"#888"}}>{p}</button>
+          ))}
+        </div>
+        <div style={{background:"#1a1a2e",border:"1px solid #333",borderRadius:4,padding:"8px 12px",marginBottom:14}}>
+          <div style={{color:"#FFD700",fontWeight:700}}>{contribItem.e} {contribItem.n}</div>
+          <div style={{color:"#888",fontSize:11}}>{contribItem.d}</div>
+          <div style={{color:"#FFD700",fontWeight:700,marginTop:4}}>${contribItem.price} TWC$</div>
+          <div style={{color:"#555",fontSize:10,marginTop:2}}>Your balance after: ${twcBucks-contribItem.price} TWC$</div>
+        </div>
+        {contribStatus==="sending"&&<div style={{textAlign:"center",color:"#888",marginBottom:10}}>⏳ Submitting...</div>}
+        {contribStatus==="sent"&&<div style={{textAlign:"center",color:"#00ff00",fontWeight:700,marginBottom:10}}>✅ Submitted! Mr. Slaughter will apply it to your class.</div>}
+        {contribStatus==="error"&&<div style={{textAlign:"center",color:"#ff4444",marginBottom:10}}>❌ Failed — check internet connection and try again.</div>}
+        {contribStatus!=="sent"&&<div style={{display:"flex",gap:8}}>
+          <button onClick={confirmContrib} disabled={contribStatus==="sending"}
+            style={{flex:2,padding:10,background:"#FFD700",color:"#000",border:"none",fontFamily:"monospace",fontWeight:700,fontSize:13,cursor:"pointer",borderRadius:4}}>
+            📬 SUBMIT CONTRIBUTION
+          </button>
+          <button onClick={()=>{setContribModal(false);setContribItem(null);}} disabled={contribStatus==="sending"}
+            style={{flex:1,padding:10,background:"#1a1a1a",color:"#888",border:"1px solid #333",fontFamily:"monospace",cursor:"pointer",borderRadius:4}}>
+            CANCEL
+          </button>
+        </div>}
+      </div>
+    </div>}
+{warRes&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",animation:"slideIn .3s ease"}}><div style={{textAlign:"center"}}><div style={{fontSize:46}}>{warRes.w?"🏆":"💀"}</div><h2 style={{fontSize:22,fontWeight:900,color:warRes.w?"#FFD700":"#EF4444"}}>{warRes.w?"VICTORY!":"DEFEAT!"}</h2><p style={{opacity:.4}}>vs {warRes.n}</p></div></div>}
 
       {/* TOP BAR */}
       <div style={{background:"linear-gradient(90deg,rgba(0,0,0,.7),rgba(10,20,35,.6),rgba(0,0,0,.7))",padding:"4px 10px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:2,position:"relative",zIndex:1,borderBottom:"1px solid "+(gov?.c||"#333")+"22"}}>
