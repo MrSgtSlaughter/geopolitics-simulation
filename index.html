@@ -985,9 +985,21 @@ function TWC(){
           {/* SUBMIT TO TWC */}
           {Object.keys(inventory).length>0&&<div style={{textAlign:"center",marginBottom:8}}>
             <button className="hov" onClick={async()=>{
-              const items=STORE.filter(i=>inventory[i.id]>0).map(i=>i.n+" x"+(inventory[i.id])).join(", ");
-              const ok=await fbPost({name:lN||"Leader",nation:nN||"Nation",period:period||"?",type:"purchase",items,inv:JSON.stringify(inventory),score});
-              if(ok===true){if(!muted)SFX.achieve();setLog(l=>["📦 Purchases submitted to Mr. Slaughter for TWC approval!",...l].slice(0,60))}
+              const purchaseItems=STORE.filter(i=>inventory[i.id]>0);
+              let allOk=true;
+              for(const item of purchaseItems){
+                const count=inventory[item.id]||0;
+                for(let x=0;x<count;x++){
+                  try{
+                    const payload={name:lN||"Leader",period:period||"?",unit_id:item.id,unit_name:item.n,emoji:item.e,price:item.price,status:"pending",timestamp:Date.now()};
+                    const url="https://minigolf-fd9ea-default-rtdb.firebaseio.com/twc_contributions/"+(period||"unknown")+".json";
+                    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+                    if(!r.ok)allOk=false;
+                  }catch{allOk=false}
+                }
+              }
+              if(allOk){if(!muted)SFX.achieve();setLog(l=>["📦 Purchases sent to TWC! Mr. Slaughter will review.",...l].slice(0,60))}
+              else{setLog(l=>["⚠️ Some items failed to send. Try again.",...l].slice(0,60))}
             }} style={{padding:"8px 20px",fontSize:11,fontWeight:700,borderRadius:7,border:"none",background:"linear-gradient(135deg,#10B981,#059669)",color:"#fff",cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 10px rgba(16,185,129,.3)"}}>📦 Submit Purchases to Mr. Slaughter</button>
             <div style={{fontSize:7,opacity:.3,marginTop:3}}>Items will be reviewed for next TWC game day</div>
           </div>}
