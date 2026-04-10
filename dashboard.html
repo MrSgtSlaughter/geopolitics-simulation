@@ -16,7 +16,7 @@
   .tab.active{background:var(--c)}
   .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
   .sum-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px;text-align:center}
-  .sum-num{font-size:22px;font-weight:800} .sum-label{font-size:9px;opacity:.4}
+  .sum-num{font-size:22px;font-weight:800}.sum-label{font-size:9px;opacity:.4}
   table{width:100%;border-collapse:collapse;font-size:11px}
   th{text-align:left;padding:5px 6px;background:rgba(255,255,255,.06);color:#FFD700;font-size:9px;position:sticky;top:0}
   td{padding:4px 6px;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -27,71 +27,94 @@
   .per-5th{background:rgba(245,158,11,.15);color:#F59E0B}
   .per-6th{background:rgba(59,130,246,.15);color:#3B82F6}
   .inv{display:inline-block;font-size:8px;padding:1px 4px;border-radius:2px;margin:1px;background:rgba(255,215,0,.1);color:#FFD700;border:1px solid rgba(255,215,0,.15)}
-  .purchase-card{background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.12);border-radius:8px;padding:10px;margin-bottom:8px}
-  .btn{padding:6px 14px;border-radius:6px;border:none;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;margin-bottom:6px}
+  .btn{padding:6px 14px;border-radius:6px;border:none;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;margin:2px}
   .btn:hover{filter:brightness(1.15)}
-  .approved{opacity:.4;border-color:rgba(16,185,129,.2)!important;background:rgba(16,185,129,.05)!important}
-  .approved::after{content:" ✅ APPROVED";color:#10B981;font-weight:700}
+  .approved{border-left:3px solid #10B981!important;opacity:.5}
+  .denied{border-left:3px solid #EF4444!important;opacity:.35;text-decoration:line-through}
 </style>
 </head>
 <body>
 <h1>🏛️ TWC: Teacher Dashboard</h1>
-<div class="sub">Total World Conquest: The Modern Empire — Manage Classes & Approve Purchases</div>
+<div class="sub">Manage Leaderboard & Approve/Deny Student Weapon Purchases</div>
 
 <div style="text-align:center;margin-bottom:12px">
-  <button class="btn" style="background:#FFD700;color:#000" onclick="loadAll()">🔄 Refresh</button>
+  <button class="btn" style="background:#FFD700;color:#000;font-size:13px;padding:8px 20px" onclick="loadAll()">🔄 Refresh All</button>
   <span id="lastUpdate" style="font-size:9px;opacity:.3;margin-left:8px"></span>
 </div>
 
 <div class="tabs" id="tabs"></div>
 <div class="summary" id="summary"></div>
-<div id="content" style="max-height:70vh;overflow:auto"></div>
+<div id="content" style="max-height:72vh;overflow:auto"></div>
 
 <div style="text-align:center;margin-top:16px;font-size:8px;opacity:.12">
   TWC: The Modern Empire · © 2026 Jason Slaughter · PixelED Path, LLC
 </div>
 
 <script>
-const FB="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
+const FS_URL="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
+const RT_URL="https://minigolf-fd9ea-default-rtdb.firebaseio.com/twc_contributions";
 const fbV=f=>f?Object.values(f)[0]:"";
 
-const STORE_NAMES={ranger:"🪖 Ranger",tank:"🛡️ Tank",blockade:"🚧 Blockade",bomber:"✈️ Bomber",submarine:"🔱 Submarine",cyberattack:"💻 Cyber",carrier:"🚢 Carrier",civilunrest:"🔥 Civil Unrest",icbm:"🚀 ICBM",nuke:"☢️ Nuke"};
+const UNIT_NAMES={ranger:"🪖 Ranger",tank:"🛡️ Tank",blockade:"🚧 Blockade",bomber:"✈️ Bomber",submarine:"🔱 Submarine",cyberattack:"💻 Cyber Attack",carrier:"🚢 Carrier",civilunrest:"🔥 Civil Unrest",icbm:"🚀 ICBM",nuke:"☢️ Nuke"};
 
 let scores=[];
-let purchases=[];
+let purchases={};  // {period: {firebaseKey: data}}
 let currentTab="all";
-let approved=JSON.parse(localStorage.getItem("twc_approved")||"{}");
-
-function saveApproved(){localStorage.setItem("twc_approved",JSON.stringify(approved))}
 
 async function loadAll(){
   document.getElementById("content").innerHTML='<div style="text-align:center;padding:30px;opacity:.3">Loading...</div>';
+  
+  // Load Firestore scores
   try{
-    const r=await fetch(FB+"?pageSize=500");
-    if(!r.ok){document.getElementById("content").innerHTML='<div style="text-align:center;padding:30px;color:#EF4444">Firebase error '+r.status+'. Check rules.</div>';return}
-    const d=await r.json();
-    const all=(d.documents||[]).map(x=>{
-      const f=x.fields||{};
-      const id=x.name.split("/").pop();
-      return{id,name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,period:fbV(f.period),inv:fbV(f.inv)||"{}",type:fbV(f.type)||"score",items:fbV(f.items)};
-    });
-    scores=all.filter(x=>x.type==="score").sort((a,b)=>b.score-a.score);
-    purchases=all.filter(x=>x.type==="purchase");
-    // Dedupe scores — keep highest per name+period
-    const seen={};
-    scores=scores.filter(s=>{const k=s.name+"_"+s.period;if(seen[k])return false;seen[k]=true;return true});
-    document.getElementById("lastUpdate").textContent="Updated "+new Date().toLocaleTimeString();
-    renderTabs();
-    render();
-  }catch(e){document.getElementById("content").innerHTML='<div style="text-align:center;padding:30px;color:#EF4444">'+e.message+'</div>'}
+    const r=await fetch(FS_URL+"?pageSize=500");
+    if(r.ok){
+      const d=await r.json();
+      scores=(d.documents||[]).map(x=>{
+        const f=x.fields||{};
+        return{name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,period:fbV(f.period),inv:fbV(f.inv)||"{}"};
+      }).sort((a,b)=>b.score-a.score);
+      // Dedupe
+      const seen={};
+      scores=scores.filter(s=>{const k=s.name+"_"+s.period;if(seen[k])return false;seen[k]=true;return true});
+    }
+  }catch(e){console.error("Firestore:",e)}
+  
+  // Load Realtime Database purchases (all periods)
+  purchases={};
+  for(const period of ["1st","2nd","5th","6th"]){
+    try{
+      const r=await fetch(RT_URL+"/"+period+".json");
+      if(r.ok){
+        const d=await r.json();
+        if(d){purchases[period]=d}
+      }
+    }catch(e){console.error("RTDB "+period+":",e)}
+  }
+  
+  document.getElementById("lastUpdate").textContent="Updated "+new Date().toLocaleTimeString();
+  renderTabs();
+  render();
+}
+
+function getPurchaseList(){
+  const list=[];
+  for(const[period,items]of Object.entries(purchases)){
+    for(const[key,data]of Object.entries(items)){
+      list.push({...data,period,fbKey:key});
+    }
+  }
+  list.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  return list;
 }
 
 function renderTabs(){
+  const allP=getPurchaseList();
+  const pending=allP.filter(p=>p.status==="pending").length;
   const periods=["all","1st","2nd","5th","6th","purchases"];
-  const purchaseCount=purchases.filter(p=>!approved[p.id]).length;
   document.getElementById("tabs").innerHTML=periods.map(p=>{
     let label,count;
-    if(p==="purchases"){label="🛒 Purchases";count=purchaseCount>0?` (${purchaseCount} pending)`:""}
+    if(p==="purchases"){label="🛒 Purchases";count=pending>0?` (${pending} pending)`:""}
     else if(p==="all"){label="All";count=` (${scores.length})`}
     else{label=p+" Hour";count=` (${scores.filter(s=>s.period===p).length})`}
     return`<button class="tab ${currentTab===p?'active':''}" data-p="${p}" onclick="setTab('${p}')">${label}${count}</button>`;
@@ -103,7 +126,12 @@ function setTab(t){currentTab=t;renderTabs();render()}
 function render(){
   if(currentTab==="purchases"){renderPurchases();return}
   const data=currentTab==="all"?scores:scores.filter(s=>s.period===currentTab);
-  if(!data.length){document.getElementById("summary").innerHTML="";document.getElementById("content").innerHTML='<div style="text-align:center;padding:30px;opacity:.3">No scores yet for this period.</div>';return}
+  
+  if(!data.length){
+    document.getElementById("summary").innerHTML="";
+    document.getElementById("content").innerHTML='<div style="text-align:center;padding:30px;opacity:.3">No scores for this period.</div>';
+    return;
+  }
   
   const avg=Math.round(data.reduce((s,d)=>s+d.score,0)/data.length);
   const govCounts={};data.forEach(d=>{govCounts[d.gov]=(govCounts[d.gov]||0)+1});
@@ -114,69 +142,120 @@ function render(){
     <div class="sum-card"><div class="sum-num" style="color:#3B82F6">${data.length}</div><div class="sum-label">Players</div></div>
     <div class="sum-card"><div class="sum-num" style="color:#FFD700">${avg.toLocaleString()}</div><div class="sum-label">Avg Score</div></div>
     <div class="sum-card"><div class="sum-num" style="color:#10B981">${topGov?topGov[0]:"-"}</div><div class="sum-label">Top Gov (${topGov?topGov[1]:0})</div></div>
-    <div class="sum-card"><div class="sum-num" style="color:#F59E0B">${withInv}</div><div class="sum-label">Have Weapons</div></div>
-  `;
+    <div class="sum-card"><div class="sum-num" style="color:#F59E0B">${withInv}</div><div class="sum-label">Have Weapons</div></div>`;
   
   document.getElementById("content").innerHTML=`<table>
-    <thead><tr><th>#</th><th>Leader</th><th>Period</th><th>Nation</th><th>Gov</th><th>Score</th><th>Weapons Inventory</th></tr></thead>
+    <thead><tr><th>#</th><th>Leader</th><th>Period</th><th>Nation</th><th>Gov</th><th>Score</th><th>Inventory</th></tr></thead>
     <tbody>${data.map((d,i)=>`<tr>
       <td style="color:#FFD700;font-weight:700">${i<3?["🥇","🥈","🥉"][i]:(i+1)}</td>
       <td style="font-weight:700">${d.name}</td>
       <td><span class="per per-${d.period}">${d.period}</span></td>
-      <td>${d.nation}</td>
-      <td>${d.gov}</td>
+      <td>${d.nation}</td><td>${d.gov}</td>
       <td style="font-weight:700;color:#FFD700">${d.score.toLocaleString()}</td>
       <td>${parseInv(d.inv)}</td>
-    </tr>`).join("")}</tbody>
-  </table>`;
+    </tr>`).join("")}</tbody></table>`;
 }
 
 function renderPurchases(){
-  document.getElementById("summary").innerHTML=`
-    <div class="sum-card"><div class="sum-num" style="color:#FFD700">${purchases.length}</div><div class="sum-label">Total Submissions</div></div>
-    <div class="sum-card"><div class="sum-num" style="color:#EF4444">${purchases.filter(p=>!approved[p.id]).length}</div><div class="sum-label">Pending</div></div>
-    <div class="sum-card"><div class="sum-num" style="color:#10B981">${purchases.filter(p=>approved[p.id]).length}</div><div class="sum-label">Approved</div></div>
-    <div class="sum-card"><div class="sum-num" style="color:#3B82F6">${new Set(purchases.map(p=>p.period)).size}</div><div class="sum-label">Periods</div></div>
-  `;
+  const allP=getPurchaseList();
+  const pending=allP.filter(p=>p.status==="pending");
+  const approved=allP.filter(p=>p.status==="approved");
+  const denied=allP.filter(p=>p.status==="denied");
   
-  // Group by period
-  const byPeriod={};
-  purchases.forEach(p=>{
-    if(!byPeriod[p.period])byPeriod[p.period]=[];
-    byPeriod[p.period].push(p);
-  });
+  document.getElementById("summary").innerHTML=`
+    <div class="sum-card"><div class="sum-num" style="color:#F59E0B">${pending.length}</div><div class="sum-label">⏳ Pending</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#10B981">${approved.length}</div><div class="sum-label">✅ Approved</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#EF4444">${denied.length}</div><div class="sum-label">❌ Denied</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:#3B82F6">${allP.length}</div><div class="sum-label">Total</div></div>`;
   
   let html="";
-  for(const period of ["1st","2nd","5th","6th"]){
-    const items=byPeriod[period];
-    if(!items||!items.length)continue;
-    html+=`<div style="margin-bottom:12px">
-      <h3 style="font-size:13px;margin-bottom:6px"><span class="per per-${period}">${period} Hour</span> — ${items.length} submissions</h3>`;
-    for(const p of items){
-      const isApproved=approved[p.id];
-      html+=`<div class="purchase-card ${isApproved?'approved':''}">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:13px;font-weight:700">${p.name}</div>
-            <div style="font-size:10px;opacity:.4">${p.nation} · ${p.gov||""}</div>
-          </div>
-          ${isApproved?'<span style="color:#10B981;font-size:11px;font-weight:700">✅ Approved</span>':
-          `<button class="btn" style="background:#10B981;color:#fff" onclick="approvePurchase('${p.id}')">✅ Approve for TWC</button>`}
-        </div>
-        <div style="margin-top:6px;font-size:11px"><strong>Items:</strong> ${p.items||parseInv(p.inv)}</div>
-        <div style="margin-top:2px">${parseInv(p.inv)}</div>
-      </div>`;
+  
+  // Pending first
+  if(pending.length){
+    html+=`<div style="margin-bottom:8px"><div style="font-size:11px;color:#F59E0B;font-weight:700;margin-bottom:6px">⏳ PENDING APPROVAL (${pending.length})</div>`;
+    html+=`<div style="margin-bottom:8px;text-align:center">
+      <button class="btn" style="background:#10B981;color:#fff;font-size:13px;padding:8px 20px" onclick="bulkAction('approve')">✅ Approve ALL Pending</button>
+      <button class="btn" style="background:#EF4444;color:#fff;font-size:13px;padding:8px 20px" onclick="bulkAction('deny')">❌ Deny ALL Pending</button>
+    </div>`;
+    for(const p of pending){
+      html+=renderPurchaseCard(p,"pending");
     }
     html+="</div>";
   }
   
-  if(!html)html='<div style="text-align:center;padding:30px;opacity:.3">No purchase submissions yet.</div>';
+  // Approved
+  if(approved.length){
+    html+=`<div style="margin-bottom:8px"><div style="font-size:11px;color:#10B981;font-weight:700;margin-bottom:6px">✅ APPROVED (${approved.length})</div>`;
+    for(const p of approved)html+=renderPurchaseCard(p,"approved");
+    html+="</div>";
+  }
+  
+  // Denied
+  if(denied.length){
+    html+=`<div style="margin-bottom:8px"><div style="font-size:11px;color:#EF4444;font-weight:700;margin-bottom:6px">❌ DENIED (${denied.length})</div>`;
+    for(const p of denied)html+=renderPurchaseCard(p,"denied");
+    html+="</div>";
+  }
+  
+  if(!allP.length)html='<div style="text-align:center;padding:30px;opacity:.3">No purchase submissions yet.</div>';
   document.getElementById("content").innerHTML=html;
 }
 
-function approvePurchase(id){
-  approved[id]=true;
-  saveApproved();
+function renderPurchaseCard(p,status){
+  const unitDisplay=UNIT_NAMES[p.unit_id]||p.unit_name||"Unknown";
+  const time=p.timestamp?new Date(p.timestamp).toLocaleString():"?";
+  const statusClass=status==="approved"?"approved":status==="denied"?"denied":"";
+  
+  return`<div class="card ${statusClass}">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700">${p.name||"?"} <span class="per per-${p.period}">${p.period}</span></div>
+        <div style="font-size:18px;margin:3px 0">${unitDisplay} <span style="font-size:10px;opacity:.4">$${p.price||"?"}</span></div>
+        <div style="font-size:8px;opacity:.3">${time}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${status==="pending"?`
+          <button class="btn" style="background:#10B981;color:#fff;font-size:13px;padding:8px 16px" onclick="updateStatus('${p.period}','${p.fbKey}','approved')">✅ Approve</button>
+          <button class="btn" style="background:#EF4444;color:#fff;font-size:13px;padding:8px 16px" onclick="updateStatus('${p.period}','${p.fbKey}','denied')">❌ Deny</button>
+        `:""}
+        ${status==="approved"?'<span style="color:#10B981;font-weight:700;font-size:12px">✅ Approved</span>':""}
+        ${status==="denied"?`<span style="color:#EF4444;font-weight:700;font-size:12px">❌ Denied</span>
+          <button class="btn" style="background:#F59E0B;color:#000;font-size:10px;padding:4px 10px" onclick="updateStatus('${p.period}','${p.fbKey}','approved')">↩️ Undo</button>`:""}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function updateStatus(period,key,newStatus){
+  try{
+    const url=RT_URL+"/"+period+"/"+key+"/status.json";
+    const r=await fetch(url,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(newStatus)});
+    if(r.ok){
+      // Update local data
+      if(purchases[period]&&purchases[period][key]){
+        purchases[period][key].status=newStatus;
+      }
+      renderTabs();
+      renderPurchases();
+    }else{alert("Failed to update. Check Firebase rules.")}
+  }catch(e){alert("Error: "+e.message)}
+}
+
+async function bulkAction(action){
+  const allP=getPurchaseList().filter(p=>p.status==="pending");
+  if(!allP.length)return;
+  const status=action==="approve"?"approved":"denied";
+  if(!confirm((action==="approve"?"Approve":"Deny")+" ALL "+allP.length+" pending items?"))return;
+  
+  for(const p of allP){
+    try{
+      const url=RT_URL+"/"+p.period+"/"+p.fbKey+"/status.json";
+      await fetch(url,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(status)});
+      if(purchases[p.period]&&purchases[p.period][p.fbKey]){
+        purchases[p.period][p.fbKey].status=status;
+      }
+    }catch(e){console.error(e)}
+  }
   renderTabs();
   renderPurchases();
 }
@@ -184,7 +263,7 @@ function approvePurchase(id){
 function parseInv(invStr){
   try{
     const inv=JSON.parse(invStr);
-    return Object.entries(inv).filter(([k,v])=>v>0).map(([k,v])=>`<span class="inv">${STORE_NAMES[k]||k} ×${v}</span>`).join(" ")||"<span style='opacity:.3'>—</span>";
+    return Object.entries(inv).filter(([k,v])=>v>0).map(([k,v])=>`<span class="inv">${UNIT_NAMES[k]||k} ×${v}</span>`).join(" ")||"<span style='opacity:.3'>—</span>";
   }catch{return"<span style='opacity:.3'>—</span>"}
 }
 

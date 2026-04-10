@@ -90,14 +90,14 @@ const fbGet=async()=>{try{const r=await fetch(FB+"?pageSize=50");if(!r.ok){conso
 const STORE=[
   {id:"ranger",n:"Airborne Ranger",e:"🪖",d:"+1 attack roll",price:100,stack:true},
   {id:"tank",n:"Tank",e:"🛡️",d:"+2 attack roll (max 3)",price:200,stack:true},
-  {id:"blockade",n:"Blockade",e:"🚧",d:"Target class cannot attack today (60%)",price:300,stack:false},
-  {id:"bomber",n:"Bomber",e:"✈️",d:"Force enemy to lose 1 territory (70%)",price:350,stack:false},
-  {id:"submarine",n:"Submarine",e:"🔱",d:"Roll attack dice twice, take better (75%)",price:400,stack:false},
-  {id:"cyberattack",n:"Cyber Attack",e:"💻",d:"Steal up to $800 from enemy (50%)",price:450,stack:false},
-  {id:"carrier",n:"Aircraft Carrier",e:"🚢",d:"Attack without bordering (70%)",price:500,stack:false},
-  {id:"civilunrest",n:"Civil Unrest",e:"🔥",d:"Target class loses 2 turns",price:700,stack:false},
-  {id:"icbm",n:"ICBM",e:"🚀",d:"+5 bonus to cross-continent attack",price:800,stack:false},
-  {id:"nuke",n:"Nuclear Warhead",e:"☢️",d:"DESTROYS territory forever (40%)",price:2000,stack:false},
+  {id:"blockade",n:"Blockade",e:"🚧",d:"Target class cannot attack today (60%)",price:300,stack:true},
+  {id:"bomber",n:"Bomber",e:"✈️",d:"Force enemy to lose 1 territory (70%)",price:350,stack:true},
+  {id:"submarine",n:"Submarine",e:"🔱",d:"Roll attack dice twice, take better (75%)",price:400,stack:true},
+  {id:"cyberattack",n:"Cyber Attack",e:"💻",d:"Steal up to $800 from enemy (50%)",price:450,stack:true},
+  {id:"carrier",n:"Aircraft Carrier",e:"🚢",d:"Attack without bordering (70%)",price:500,stack:true},
+  {id:"civilunrest",n:"Civil Unrest",e:"🔥",d:"Target class loses 2 turns",price:700,stack:true},
+  {id:"icbm",n:"ICBM",e:"🚀",d:"+5 bonus to cross-continent attack",price:800,stack:true},
+  {id:"nuke",n:"Nuclear Warhead",e:"☢️",d:"DESTROYS territory forever (40%)",price:2000,stack:true},
 ];
 
 const fmt=n=>{if(n<0)return"-"+fmt(-n);if(n>=1e12)return(n/1e12).toFixed(1)+"T";if(n>=1e9)return(n/1e9).toFixed(1)+"B";if(n>=1e6)return(n/1e6).toFixed(1)+"M";if(n>=1e3)return(n/1e3).toFixed(1)+"K";return Math.floor(n).toString()};
@@ -1007,17 +1007,17 @@ function TWC(){
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5}}>
             {STORE.map(item=>{
               const owned=inventory[item.id]||0;
-              const canBuy=twcBucks>=item.price&&(item.stack||owned<1);
-              const maxed=!item.stack&&owned>=1;
+              const canBuy=twcBucks>=item.price;
+              const maxed=false;
               return(
                 <div key={item.id} style={{...S.c,padding:8,display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center",opacity:maxed?.5:1}}>
                   <div style={{fontSize:24,marginBottom:2}}>{item.e}</div>
                   <div style={{fontSize:10,fontWeight:700,color:"#FFD700"}}>{item.n}</div>
                   <div style={{fontSize:7,opacity:.4,marginBottom:3,lineHeight:1.3}}>{item.d}</div>
                   <div style={{fontSize:13,fontWeight:800,color:"#6EE7B7",marginBottom:2}}>${item.price}</div>
-                  {owned>0&&<div style={{fontSize:7,opacity:.5,marginBottom:2}}>{item.stack?"✅ Stackable":"❌ Max 1"} · Own: {owned}</div>}
+                  {owned>0&&<div style={{fontSize:7,opacity:.5,marginBottom:2}}>"✅ Stackable" · Own: {owned}</div>}
                   <button className="hov" onClick={()=>buyItem(item)} disabled={!canBuy} style={{...S.b(canBuy,"#F59E0B"),width:"100%",padding:"6px 0",fontSize:10}}>
-                    {maxed?"Max Owned":canBuy?"🛒 BUY":"Need $"+(item.price-twcBucks)}
+                    {canBuy?"🛒 BUY":"Need $"+(item.price-twcBucks)}
                   </button>
                 </div>
               );
