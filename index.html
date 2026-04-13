@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>TWC: The Modern Empire</title>
+<title>TWC: The Modern Empire v2.4</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body, #root { width: 100%; height: 100%; overflow: hidden; }
@@ -85,7 +85,7 @@ const{useState,useEffect,useCallback,useRef,useMemo}=React;
 const FB="https://firestore.googleapis.com/v1/projects/minigolf-fd9ea/databases/(default)/documents/twc_modern_scores";
 const fbV=f=>f?Object.values(f)[0]:"";
 const fbPost=async d=>{const fs={};for(const[k,v]of Object.entries(d))fs[k]=typeof v==="number"?{integerValue:String(Math.floor(v))}:{stringValue:String(v)};try{const r=await fetch(FB,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:fs})});if(!r.ok){const t=await r.text();console.error("FB POST error:",r.status,t);return"ERR:"+r.status}return true}catch(e){console.error("FB network error:",e);return"ERR:network"}};
-const fbGet=async()=>{try{const r=await fetch(FB+"?pageSize=50");if(!r.ok){console.error("FB GET error:",r.status);return"ERR"}const d=await r.json();const docs=(d.documents||[]).map(x=>{const f=x.fields||{};return{name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,period:fbV(f.period),inv:fbV(f.inv)}});docs.sort((a,b)=>b.score-a.score);return docs.slice(0,30)}catch(e){console.error("FB GET network:",e);return[]}};
+const fbGet=async()=>{try{const r=await fetch(FB+"?pageSize=200&t="+Date.now());if(!r.ok){console.error("FB GET error:",r.status);return"ERR"}const d=await r.json();const docs=(d.documents||[]).map(x=>{const f=x.fields||{};return{name:fbV(f.name),nation:fbV(f.nation),gov:fbV(f.gov),score:Number(fbV(f.score))||0,period:fbV(f.period),inv:fbV(f.inv)}});docs.sort((a,b)=>b.score-a.score);const seen={};return docs.filter(d=>{const k=d.name+"_"+d.period;if(seen[k])return false;seen[k]=true;return true}).slice(0,30)}catch(e){console.error("FB GET network:",e);return[]}};
 // ─── TWC STORE (Individual Contribution) ─────────────────────
 const STORE=[
   {id:"ranger",n:"Airborne Ranger",e:"🪖",d:"+1 attack roll",price:100,stack:true},
@@ -796,6 +796,21 @@ function TWC(){
   const TABS=[{id:"gather",e:"👆",l:"Gather"},{id:"build",e:"🏗️",l:"Build"},{id:"research",e:"⬆️",l:"Upgrade"},{id:"quiz",e:"🎓",l:"Quiz"},{id:"store",e:"🛒",l:"Store"},{id:"sim",e:"🏙️",l:"Sim"},{id:"world",e:"🌍",l:"World"},{id:"achieve",e:"🏆",l:"Awards"},{id:"intel",e:"📊",l:"Intel"}];
 
   if(screen==="title"){return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(160deg,#040810 0%,#0a1525 40%,#0d0a18 70%,#040810 100%)",fontFamily:"'Segoe UI',sans-serif",color:"#d1d5db",padding:20}}>
+      <div style={{textAlign:"center",maxWidth:480}}>
+        <div style={{fontSize:42,marginBottom:10}}>🏛️</div>
+        <div style={{fontSize:24,fontWeight:800,color:"#FFD700",marginBottom:8,letterSpacing:2}}>TWC: THE MODERN EMPIRE</div>
+        <div style={{fontSize:15,color:"#F59E0B",fontWeight:700,marginBottom:24}}>⏸️ TEMPORARILY PAUSED</div>
+        <div style={{background:"rgba(255,215,0,.08)",border:"2px solid rgba(255,215,0,.25)",borderRadius:12,padding:"24px 28px",marginBottom:24}}>
+          <div style={{fontSize:15,color:"#d1d5db",lineHeight:1.7,marginBottom:18}}>Modern Empire is taking a break!<br/>In the meantime, head over to:</div>
+          <a href="https://mrsgtslaughter.github.io/TWC-Boot-Camp-Buddy/" style={{display:"inline-block",padding:"16px 36px",fontSize:17,fontWeight:800,borderRadius:10,border:"none",background:"linear-gradient(135deg,#FFD700,#F59E0B)",color:"#000",textDecoration:"none",fontFamily:"inherit",boxShadow:"0 4px 24px rgba(255,215,0,.4)",letterSpacing:1}}>🎮 PLAY BOOTCAMP BUDDY</a>
+          <div style={{fontSize:11,opacity:.4,marginTop:12}}>mrsgtslaughter.github.io/TWC-Boot-Camp-Buddy/</div>
+        </div>
+        <div style={{fontSize:10,opacity:.15}}>v2.4 · © 2026 Jason Slaughter · PixelED Path, LLC</div>
+      </div>
+    </div>
+  )}
+  if(false&&screen==="title__old"){return(
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#020508",fontFamily:"Georgia,serif",color:"#d1d5db",padding:16,overflow:"auto",position:"relative"}}>
       <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.25,pointerEvents:"none"}}><source src="background.mp4" type="video/mp4"/></video>
       <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.gbtn:hover{transform:translateY(-2px)}.sbtn:hover{filter:brightness(1.15)}.sbtn:active{transform:scale(.97)}*{box-sizing:border-box}`}</style>
@@ -834,7 +849,7 @@ function TWC(){
         </div>)}</div>
         <button className="sbtn" onClick={()=>{if(!period){alert("Please select your class period!");return}if(!nN.trim())setNN("New Republic");if(!lN.trim())setLN("The Leader");if(!relKey&&gk!=="dictatorship"&&gk!=="totalitarianism")setRelKey("christianity");setScreen("game")}} style={{padding:"10px 32px",fontSize:14,fontWeight:700,cursor:"pointer",background:"linear-gradient(135deg,"+GOV[gk].c+","+GOV[gk].c+"88)",border:"none",borderRadius:8,color:"#fff",fontFamily:"inherit",letterSpacing:2,textTransform:"uppercase",transition:"all .2s",boxShadow:"0 4px 16px "+GOV[gk].c+"44"}}>{GOV[gk].e} Begin</button></div>}
         <div style={{marginTop:12,fontSize:8,opacity:.2}}><a href="https://mrsgtslaughter.github.io/Total-World-Conquest-Modern-World/" target="_blank" rel="noopener" style={{color:"#FFD700",textDecoration:"none"}}>🎮 TWC: Modern World</a></div>
-        <div style={{marginTop:6,fontSize:7,opacity:.12}}>Copyright © 2026 Jason Slaughter · PixelED Path, LLC · <a href="dashboard.html" target="_blank" style={{color:"#F59E0B",textDecoration:"none"}}>📊 Teacher Dashboard</a></div>
+        <div style={{marginTop:6,fontSize:7,opacity:.12}}>v2.4 · Copyright © 2026 Jason Slaughter · PixelED Path, LLC · <a href="dashboard.html" target="_blank" style={{color:"#F59E0B",textDecoration:"none"}}>📊 Teacher Dashboard</a></div>
       </div>
     </div>
   )}
@@ -1075,7 +1090,7 @@ function TWC(){
         {tab==="achieve"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>ACHIEVEMENTS · {achU.length}/{ACHS.length} · {achPts}pts</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>{ACHS.map(a=>{const u=achU.includes(a.id);return(<div key={a.id} style={{...S.c,padding:6,opacity:u?1:.25,background:u?"rgba(255,215,0,.04)":"rgba(255,255,255,.01)",border:u?"1px solid rgba(255,215,0,.15)":"1px solid rgba(255,255,255,.03)"}}><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:14}}>{u?a.e:"🔒"}</span><span style={{fontSize:9,fontWeight:700,color:u?"#FFD700":"rgba(255,255,255,.2)"}}>{a.pts}</span></div><div style={{fontSize:9,fontWeight:700,marginTop:1}}>{a.n}</div><div style={{fontSize:7,opacity:.4}}>{a.d}</div></div>)})}</div></div>}
 
         {/* INTEL */}
-        {tab==="intel"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>INTEL & LEADERBOARD</div>
+        {tab==="intel"&&<div style={{animation:"fadeUp .25s ease"}}><div style={{textAlign:"center",fontSize:8,opacity:.2,marginBottom:5}}>INTEL & LEADERBOARD ({lbD.length} scores)</div>
           <div style={{...S.c,padding:10,marginBottom:6,background:"linear-gradient(135deg,rgba(255,215,0,.06),rgba(168,85,247,.06))",border:"1px solid rgba(255,215,0,.15)"}}>
           <div style={{textAlign:"center",marginBottom:6}}><span style={{fontSize:20}}>🎰</span><div style={{fontSize:11,fontWeight:700,color:"#FFD700"}}>DAILY TWC$ LOTTERY</div><div style={{fontSize:8,opacity:.4}}>1% Jackpot ($500) · 5% Big ($150) · 15% Win ($50)</div><div style={{fontSize:10,fontWeight:700,color:"#6EE7B7",marginTop:3}}>💵 Your TWC$: ${twcBucks}</div></div>
           {lotteryTimer>0?(<div style={{textAlign:"center"}}><div style={{fontSize:9,opacity:.4}}>Next draw in:</div><div style={{fontSize:14,fontWeight:700,color:"#F59E0B"}}>{Math.floor(lotteryTimer/3600)}h {Math.floor((lotteryTimer%3600)/60)}m {lotteryTimer%60}s</div></div>):(<div style={{textAlign:"center"}}><button className="hov" onClick={playLottery} style={{padding:"8px 24px",fontSize:12,fontWeight:700,borderRadius:7,border:"none",background:"linear-gradient(135deg,#FFD700,#F59E0B)",color:"#000",cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 12px rgba(255,215,0,.3)"}}>🎰 Play Lottery</button></div>)}
